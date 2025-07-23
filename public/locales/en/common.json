@@ -1,0 +1,470 @@
+{
+  "welcome": "Welcome",
+  "hello": "Hello {{name}}",
+  "navigation": {
+    "home": "Home",
+    "dashboard": "Dashboard",
+    "booking": "Booking",
+    "bookings": "Bookings",
+    "clients": "Clients",
+    "payment": "Payment",
+    "payments": "Payments",
+    "cars": "Cars",
+    "carReports": "Car Reports",
+    "staff": "Staff Management",
+    "maintenance": "Maintenance",
+    "account": "Account",
+    "profile": "Profile",
+    "quotation": "Quotation",
+    "order": "Order"
+  },
+  "buttons": {
+    "submit": "Submit",
+    "cancel": "Cancel",
+    "save": "Save",
+    "edit": "Edit",
+    "delete": "Delete",
+    "view": "View",
+    "add": "Add",
+    "create": "Create",
+    "update": "Update",
+    "confirm": "Confirm",
+    "back": "Back",
+    "next": "Next",
+    "previous": "Previous",
+    "close": "Close",
+    "search": "Search",
+    "filter": "Filter",
+    "reset": "Reset",
+    "signIn": "Sign In",
+    "signOut": "Sign Out",
+    "signUp": "Sign Up",
+    "manageCars": "Manage Cars",
+    "viewAll": "View all",
+    "call": "Call"
+  },
+  "forms": {
+    "firstName": "First Name",
+    "lastName": "Last Name",
+    "email": "Email",
+    "password": "Password",
+    "confirmPassword": "Confirm Password",
+    "phone": "Phone",
+    "address": "Address",
+    "city": "City",
+    "state": "State",
+    "zipCode": "Zip Code",
+    "country": "Country",
+    "driverLicense": "Driver's License Number",
+    "licenseExpiry": "License Expiry Date"
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "totalBookings": "Total Bookings",
+    "activeBookings": "Active Bookings",
+    "totalRevenue": "Total Revenue",
+    "availableCars": "Available Cars",
+    "totalCars": "Total Cars",
+    "recentBookings": "Recent Bookings",
+    "recentActivity": "Recent Activity",
+    "quickActions": "Quick Actions",
+    "statistics": "Statistics",
+    "overview": "Overview"
+  },
+  "booking": {
+    "title": "Booking Management",
+    "subtitle": "Track and manage all vehicle bookings in one place",
+    "newBooking": "New Booking",
+    "bookingsCount": "Bookings",
+    "bookingId": "Booking ID",
+    "customer": "Customer",
+    "car": "Car",
+    "startDate": "Start Date",
+    "endDate": "End Date",
+    "status": "Status",
+    "total": "Total",
+    "duration": "Duration",
+    "pickup": "Pickup",
+    "dropoff": "Drop-off",
+    "metrics": {
+      "total": "Total Bookings",
+      "active": "Active",
+      "pending": "Pending",
+      "completed": "Completed",
+      "revenue": "Revenue",
+      "pendingPayments": "Pending"
+    },
+    "filters": {
+      "searchPlaceholder": "Search bookings...",
+      "allStatus": "All Status",
+      "showing": "Showing {{showing}} of {{total}} bookings"
+    },
+    "status": {
+      "pending": "Pending",
+      "confirmed": "Confirmed",
+      "active": "Active",
+      "completed": "Completed",
+      "cancelled": "Cancelled"
+    },
+    "table": {
+      "headers": {
+        "booking": "Booking",
+        "client": "Client",
+        "vehicle": "Vehicle",
+        "duration": "Duration",
+        "amount": "Amount",
+        "status": "Status",
+        "actions": "Actions"
+      }
+    },
+    "actions": {
+      "view": "View",
+      "edit": "Edit"
+    },
+    "modal": {
+      "title": "Booking Details",
+      "clientInfo": "Client Information",
+      "vehicleInfo": "Vehicle Information",
+      "bookingDetails": "Booking Details",
+      "paymentInfo": "Payment Information",
+      "days": "days",
+      "included": "Included",
+      "notIncluded": "Not Included",
+      "fields": {
+        "bookingNumber": "Booking Number",
+        "duration": "Duration",
+        "startDate": "Start Date",
+        "endDate": "End Date",
+        "pickup": "Pickup",
+        "dropoff": "Dropoff",
+        "totalAmount": "Total Amount",
+        "paidAmount": "Paid Amount",
+        "remaining": "Remaining",
+        "insurance": "Insurance"
+      },
+      "buttons": {
+        "close": "Close",
+        "edit": "Edit Booking"
+      }
+    }
+  },
+  "clients": {
+    "title": "Clients",
+    "newClient": "New Client",
+    "clientId": "Client ID",
+    "name": "Name",
+    "lastRent": "Last Rent",
+    "totalBookings": "Total Bookings",
+    "joinDate": "Join Date",
+    "contactInfo": "Contact Information"
+  },
+  "payment": {
+    "title": "Payments",
+    "paymentId": "Payment ID",
+    "amount": "Amount",
+    "method": "Payment Method",
+    "date": "Date",
+    "client": "Client",
+    "rest": "Rest",
+    "total": "Total",
+    "paid": "Paid",
+    "pending": "Pending",
+    "overdue": "Overdue"
+  },
+  "carReports": {
+    "title": "Car Financial Report",
+    "subtitle": "Financial performance analysis of your vehicle fleet",
+    "buttons": {
+      "exportCSV": "Export CSV",
+      "exportPDF": "Export PDF",
+      "saveNotes": "Save Notes"
+    },
+    "filters": {
+      "dateRange": "Date Range",
+      "to": "to",
+      "selectCar": "Select Car",
+      "allCars": "All Cars"
+    },
+    "metrics": {
+      "totalRevenue": "Total Revenue",
+      "maintenanceCost": "Maintenance Cost",
+      "insuranceCost": "Insurance Cost",
+      "staffSalary": "Staff Salary",
+      "totalProfit": "Total Profit"
+    },
+    "charts": {
+      "revenue": "Revenue",
+      "totalCosts": "Total Costs",
+      "profit": "Profit",
+      "maintenance": "Maintenance",
+      "insurance": "Insurance",
+      "staffSalary": "Staff Salary",
+      "other": "Other",
+      "revenueVsCosts": "Revenue vs Costs",
+      "costBreakdown": "Cost Breakdown"
+    },
+    "table": {
+      "title": "Car Financial Details",
+      "car": "Car",
+      "plateNumber": "Plate Number",
+      "revenue": "Revenue",
+      "maintenance": "Maintenance",
+      "insurance": "Insurance",
+      "otherCosts": "Other Costs",
+      "staffSalary": "Staff Salary",
+      "totalCost": "Total Cost",
+      "profit": "Profit",
+      "totals": "Totals"
+    },
+    "notes": {
+      "title": "Notes",
+      "placeholder": "Add any additional notes about this report..."
+    },
+    "alerts": {
+      "exporting": "Exporting report as"
+    }
+  },
+  "cars": {
+    "title": "Fleet Management",
+    "subtitle": "Manage your vehicle fleet with advanced tools and insights",
+    "addNewCar": "Add New Car",
+    "vehiclesCount": "Vehicles",
+    "allCars": "All Cars",
+    "allCarsSubtitle": "Manage your fleet of rental vehicles",
+    "filtered": "Filtered",
+    "of": "of",
+    "carsText": "cars",
+    "metrics": {
+      "total": "Total Vehicles",
+      "available": "Ready to Rent",
+      "booked": "Currently Rented", 
+      "maintenance": "In Maintenance",
+      "fleet": "Fleet"
+    },
+    "filters": {
+      "status": "Status",
+      "brand": "Brand",
+      "priceRange": "Price Range",
+      "modelYear": "Model Year",
+      "color": "Color",
+      "allStatuses": "All Statuses",
+      "allBrands": "All Brands",
+      "allYears": "All Years",
+      "resetFilters": "Reset Filters"
+    },
+    "status": {
+      "available": "Available",
+      "booked": "Booked",
+      "maintenance": "Maintenance"
+    },
+    "card": {
+      "availableColors": "Available Colors",
+      "options": "options",
+      "features": "Features",
+      "more": "more",
+      "bookNow": "Book Now",
+      "currentlyBooked": "Currently Booked",
+      "inService": "In Service",
+      "maintain": "Maintain",
+      "scheduleMaintenanceTitle": "Schedule Maintenance",
+      "viewDocumentsTitle": "View Documents",
+      "perDay": "/day"
+    },
+    "booking": {
+      "title": "Book Your Vehicle",
+      "clientInfo": "Client Information",
+      "bookingDetails": "Booking Details",
+      "existingClient": "Existing Client",
+      "newClient": "New Client",
+      "existingClientDesc": "Select from your client database",
+      "newClientDesc": "Add a new client to your database",
+      "selectClient": "Choose a client...",
+      "completeBooking": "Complete Booking",
+      "form": {
+        "firstNameRequired": "First Name*",
+        "lastNameRequired": "Last Name*",
+        "emailRequired": "Email Address*",
+        "phoneRequired": "Phone Number*",
+        "licenseNumber": "Driver's License Number",
+        "startDateRequired": "Start Date*",
+        "endDateRequired": "End Date*",
+        "pickupLocation": "Pickup Location",
+        "dropoffLocation": "Dropoff Location",
+        "insurance": "Include Insurance Coverage (+15% of daily rate)",
+        "paymentMethod": "Payment Method",
+        "initialPayment": "Initial Payment",
+        "initialPaymentNote": "Leave as 0 for no initial payment",
+        "placeholders": {
+          "firstName": "Enter first name",
+          "lastName": "Enter last name",
+          "email": "Enter email address",
+          "phone": "Enter phone number",
+          "license": "Enter license number"
+        }
+      },
+      "locations": {
+        "downtown": "Downtown Office",
+        "airport": "Airport Terminal",
+        "hotel": "Hotel District",
+        "business": "Business Park",
+        "mall": "Mall"
+      },
+      "paymentMethods": {
+        "creditCard": "Credit Card",
+        "debitCard": "Debit Card",
+        "cash": "Cash",
+        "bankTransfer": "Bank Transfer"
+      }
+    },
+    "invoice": {
+      "title": "INVOICE",
+      "bookingNumber": "Booking #{{number}}",
+      "companyName": "Car Rental Agency",
+      "companyAddress": "123 Main Street",
+      "companyCityState": "City, State 12345",
+      "companyPhone": "Phone: (123) 456-7890",
+      "companyEmail": "Email: info@carrental.com",
+      "vehicleInfo": "Vehicle Information",
+      "vehicle": "Vehicle:",
+      "year": "Year:",
+      "license": "License Plate:",
+      "dailyRate": "Daily Rate:",
+      "rentalPeriod": "Rental Period",
+      "startDate": "Start Date:",
+      "endDate": "End Date:",
+      "duration": "Duration:",
+      "pickup": "Pickup:",
+      "dropoff": "Dropoff:",
+      "paymentSummary": "Payment Summary",
+      "rentalFee": "Rental Fee ({{days}} days × ${{rate}})",
+      "insuranceFee": "Insurance Fee (15%)",
+      "totalAmount": "Total Amount",
+      "initialPayment": "Initial Payment",
+      "remainingBalance": "Remaining Balance",
+      "termsTitle": "Terms & Conditions",
+      "terms": {
+        "payment": "Full payment is due at the time of vehicle return.",
+        "requirements": "A valid driver's license and credit card are required at pickup.",
+        "cancellation": "Cancellations must be made 24 hours in advance for a full refund.",
+        "fuel": "The vehicle must be returned with the same fuel level as at pickup.",
+        "additional": "Additional charges may apply for late returns or damage to the vehicle."
+      },
+      "footer": "Thank you for choosing our car rental service!",
+      "generatedOn": "Invoice generated on {{date}} at {{time}}",
+      "printInvoice": "Print Invoice",
+      "saveAsPdf": "Save as PDF",
+      "completeAndClose": "Complete & Close"
+    },
+    "documents": {
+      "title": "Vehicle Documents",
+      "categories": {
+        "registration": "Registration & Legal Documents",
+        "insurance": "Insurance Documents", 
+        "maintenance": "Maintenance & Service Records",
+        "financial": "Financial Documents",
+        "rental": "Rental History"
+      },
+      "docTypes": {
+        "vehicleRegistration": "Vehicle Registration",
+        "licenseCertificate": "License Certificate",
+        "inspectionCertificate": "Inspection Certificate",
+        "comprehensiveInsurance": "Comprehensive Insurance",
+        "thirdPartyInsurance": "Third Party Insurance",
+        "gapInsurance": "Gap Insurance",
+        "lastServiceRecord": "Last Service Record",
+        "oilChangeCertificate": "Oil Change Certificate",
+        "tireInspectionReport": "Tire Inspection Report",
+        "purchaseInvoice": "Purchase Invoice",
+        "loanAgreement": "Loan Agreement",
+        "depreciationSchedule": "Depreciation Schedule",
+        "rentalAgreement": "Rental Agreement",
+        "damageReport": "Damage Report"
+      },
+      "status": {
+        "valid": "Valid",
+        "expiringSoon": "Expiring Soon",
+        "upToDate": "Up to Date",
+        "dueSoon": "Due Soon",
+        "archived": "Archived",
+        "active": "Active",
+        "current": "Current",
+        "completed": "Completed",
+        "resolved": "Resolved"
+      },
+      "validUntil": "Valid until {{date}}",
+      "completed": "Completed {{date}}",
+      "due": "Due {{date}}",
+      "updated": "Updated {{date}}",
+      "upload": {
+        "title": "Upload New Documents",
+        "description": "Drag and drop files here, or click to select files",
+        "chooseFiles": "Choose Files"
+      },
+      "actions": {
+        "view": "View",
+        "download": "Download",
+        "printAll": "Print All Documents",
+        "downloadAll": "Download All Documents",
+        "emailDocuments": "Email Documents"
+      }
+    },
+    "alerts": {
+      "carNotAvailable": "This car is not available for booking.",
+      "selectClient": "Please select a client",
+      "fillRequiredFields": "Please fill in all required client fields",
+      "selectDates": "Please select start and end dates",
+      "invalidDateRange": "End date must be after start date",
+      "bookingCompleted": "Booking completed successfully! Booking ID: {{bookingId}}",
+      "carAdded": "Car {{name}} {{model}} has been added successfully!",
+      "invoiceSaved": "Invoice saved successfully as HTML file! You can open it in your browser and use \"Print to PDF\" to convert it to PDF."
+    }
+  },
+  "status": {
+    "active": "Active",
+    "inactive": "Inactive",
+    "pending": "Pending",
+    "completed": "Completed",
+    "cancelled": "Cancelled",
+    "confirmed": "Confirmed",
+    "inProgress": "In Progress"
+  },
+  "common": {
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success",
+    "warning": "Warning",
+    "info": "Information",
+    "noData": "No data available",
+    "noResults": "No results found",
+    "required": "Required",
+    "optional": "Optional",
+    "yes": "Yes",
+    "no": "No",
+    "or": "or",
+    "and": "and",
+    "language": "Language",
+    "theme": "Theme",
+    "settings": "Settings",
+    "notifications": "Notifications"
+  },
+  "notifications": {
+    "emailNotifications": "Email Notifications",
+    "smsNotifications": "SMS Notifications",
+    "appNotifications": "App Notifications",
+    "marketingEmails": "Marketing Emails",
+    "bookingConfirmations": "Receive booking confirmations and updates",
+    "bookingUpdates": "Receive booking updates via text message",
+    "pushNotifications": "Receive push notifications in the app",
+    "promotionalOffers": "Receive promotional offers and newsletters"
+  },
+  "security": {
+    "security": "Security",
+    "changePassword": "Change Password",
+    "twoFactorAuth": "Enable Two-Factor Authentication",
+    "deleteAccount": "Delete Account"
+  },
+  "meta": {
+    "pageTitle": "Client Dashboard",
+    "description": "Manage your bookings, payments, and account"
+  }
+} 
