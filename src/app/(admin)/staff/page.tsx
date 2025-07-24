@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import Button from '@/components/ui/button/Button';
 import { Modal } from '@/components/ui/modal';
+import { useTranslation } from "@/hooks/useTranslation";
 
 // Define types
 interface StaffMember {
@@ -16,6 +17,7 @@ interface StaffMember {
 }
 
 const StaffPage = () => {
+  const { t } = useTranslation();
   // State for modal
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
@@ -112,12 +114,12 @@ const StaffPage = () => {
     setIsModalOpen(false);
     
     // Show success message (in a real app, this would send an email)
-    alert(`Invitation sent to ${formData.email}`);
+    alert(`${t("staff.invitationSent")} ${formData.email}`);
   };
 
   // Handle remove staff member
   const handleRemoveStaff = (id: string) => {
-    if (confirm('Are you sure you want to remove this staff member?')) {
+    if (confirm(t("staff.removeConfirmation"))) {
       setStaffMembers(staffMembers.filter(staff => staff.id !== id));
     }
   };
@@ -148,9 +150,9 @@ const StaffPage = () => {
         <div className="mb-6">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <h2 className="text-2xl font-bold text-gray-800 dark:text-white">Staff Management</h2>
+              <h2 className="text-2xl font-bold text-gray-800 dark:text-white">{t("staff.title")}</h2>
               <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                Manage team members of your agency
+                {t("staff.subtitle")}
               </p>
             </div>
             <div className="mt-4 flex sm:mt-0">
@@ -161,7 +163,7 @@ const StaffPage = () => {
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                   <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" />
                 </svg>
-                Add Staff
+                {t("buttons.addStaff")}
               </Button>
             </div>
           </div>
@@ -172,7 +174,7 @@ const StaffPage = () => {
           {/* Search */}
           <div>
             <label htmlFor="search" className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-400">
-              Search
+              {t("staff.search")}
             </label>
             <div className="relative">
               <input
@@ -180,7 +182,7 @@ const StaffPage = () => {
                 id="search"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder="Search by name or email"
+                placeholder={t("staff.searchByNameEmail")}
                 className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-4 py-2.5 pl-10 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
               <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500 dark:text-gray-400">
@@ -194,7 +196,7 @@ const StaffPage = () => {
           {/* Role Filter */}
           <div>
             <label htmlFor="roleFilter" className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-400">
-              Filter by Role
+              {t("staff.filterByRole")}
             </label>
             <select
               id="roleFilter"
@@ -202,17 +204,17 @@ const StaffPage = () => {
               onChange={(e) => setRoleFilter(e.target.value)}
               className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-4 py-2.5 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
-              <option value="">All Roles</option>
-              <option value="Admin">Admin</option>
-              <option value="Manager">Manager</option>
-              <option value="Employee">Employee</option>
+              <option value="">{t("staff.allRoles")}</option>
+              <option value="Admin">{t("staff.admin")}</option>
+              <option value="Manager">{t("staff.manager")}</option>
+              <option value="Employee">{t("staff.employee")}</option>
             </select>
           </div>
 
           {/* Status Filter */}
           <div>
             <label htmlFor="statusFilter" className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-400">
-              Filter by Status
+              {t("staff.filterByStatus")}
             </label>
             <select
               id="statusFilter"
@@ -220,9 +222,9 @@ const StaffPage = () => {
               onChange={(e) => setStatusFilter(e.target.value)}
               className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-4 py-2.5 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
-              <option value="">All Status</option>
-              <option value="Active">Active</option>
-              <option value="Pending">Pending</option>
+              <option value="">{t("staff.allStatus")}</option>
+              <option value="Active">{t("staff.active")}</option>
+              <option value="Pending">{t("staff.pending")}</option>
             </select>
           </div>
 
@@ -235,7 +237,7 @@ const StaffPage = () => {
                 </svg>
               </div>
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Total Monthly Salary</p>
+                <p className="text-sm font-medium text-gray-500 dark:text-gray-400">{t("staff.totalMonthlySalary")}</p>
                 <p className="text-xl font-bold text-gray-900 dark:text-white">
                   {new Intl.NumberFormat('fr-MA', { style: 'currency', currency: 'MAD', maximumFractionDigits: 0 }).format(totalSalary)}
                 </p>
@@ -250,12 +252,12 @@ const StaffPage = () => {
             <table className="w-full text-left text-sm">
               <thead>
                 <tr className="bg-gray-50 dark:bg-gray-700/50">
-                  <th className="whitespace-nowrap px-4 py-3 font-medium text-gray-900 dark:text-white">Name / Email</th>
-                  <th className="whitespace-nowrap px-4 py-3 font-medium text-gray-900 dark:text-white">Role</th>
-                  <th className="whitespace-nowrap px-4 py-3 font-medium text-gray-900 dark:text-white">Joined Date</th>
-                  <th className="whitespace-nowrap px-4 py-3 font-medium text-gray-900 dark:text-white">Status</th>
-                  <th className="whitespace-nowrap px-4 py-3 font-medium text-gray-900 dark:text-white">Salary (MAD)</th>
-                  <th className="whitespace-nowrap px-4 py-3 font-medium text-gray-900 dark:text-white">Actions</th>
+                  <th className="whitespace-nowrap px-4 py-3 font-medium text-gray-900 dark:text-white">{t("staff.nameEmail")}</th>
+                  <th className="whitespace-nowrap px-4 py-3 font-medium text-gray-900 dark:text-white">{t("forms.role")}</th>
+                  <th className="whitespace-nowrap px-4 py-3 font-medium text-gray-900 dark:text-white">{t("staff.joinedDate")}</th>
+                  <th className="whitespace-nowrap px-4 py-3 font-medium text-gray-900 dark:text-white">{t("forms.status")}</th>
+                  <th className="whitespace-nowrap px-4 py-3 font-medium text-gray-900 dark:text-white">{t("staff.salary")}</th>
+                  <th className="whitespace-nowrap px-4 py-3 font-medium text-gray-900 dark:text-white">{t("staff.actions")}</th>
                 </tr>
               </thead>
               <tbody>
@@ -275,7 +277,7 @@ const StaffPage = () => {
                           ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300'
                           : 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300'
                       }`}>
-                        {staff.role}
+                        {t(`staff.${staff.role.toLowerCase()}`)}
                       </span>
                     </td>
                     <td className="whitespace-nowrap px-4 py-3 text-gray-700 dark:text-gray-300">{staff.joinDate}</td>
@@ -295,7 +297,7 @@ const StaffPage = () => {
                             <circle cx="4" cy="4" r="3" />
                           </svg>
                         )}
-                        {staff.status}
+                        {t(`staff.${staff.status.toLowerCase()}`)}
                       </span>
                     </td>
                     <td className="whitespace-nowrap px-4 py-3 text-gray-700 dark:text-gray-300">
@@ -305,7 +307,7 @@ const StaffPage = () => {
                       <div className="flex space-x-2">
                         <button
                           className="rounded-lg p-1 text-gray-500 hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
-                          title="Edit"
+                          title={t("staff.edit")}
                         >
                           <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                             <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
@@ -314,7 +316,7 @@ const StaffPage = () => {
                         <button
                           onClick={() => handleRemoveStaff(staff.id)}
                           className="rounded-lg p-1 text-gray-500 hover:bg-gray-100 hover:text-red-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-red-400"
-                          title="Remove"
+                          title={t("staff.remove")}
                         >
                           <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                             <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
@@ -329,7 +331,7 @@ const StaffPage = () => {
           </div>
           {filteredStaff.length === 0 && (
             <div className="py-8 text-center text-gray-500 dark:text-gray-400">
-              No staff members found.
+              {t("staff.noStaffFound")}
             </div>
           )}
         </div>
@@ -339,12 +341,12 @@ const StaffPage = () => {
       <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} className="max-w-md">
         <div className="p-6">
           <h3 className="mb-4 text-xl font-semibold text-gray-900 dark:text-white">
-            Add New Staff Member
+            {t("staff.addNewStaff")}
           </h3>
           <form onSubmit={handleSubmit}>
             <div className="mb-4">
               <label htmlFor="email" className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-400">
-                Email Address <span className="text-red-500">*</span>
+                {t("forms.emailAddress")} <span className="text-red-500">*</span>
               </label>
               <input
                 type="email"
@@ -353,13 +355,13 @@ const StaffPage = () => {
                 value={formData.email}
                 onChange={handleInputChange}
                 required
-                placeholder="Enter staff email address"
+                placeholder={t("staff.enterStaffEmail")}
                 className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-4 py-2.5 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
             <div className="mb-6">
               <label htmlFor="role" className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-400">
-                Role <span className="text-red-500">*</span>
+                {t("forms.role")} <span className="text-red-500">*</span>
               </label>
               <select
                 id="role"
@@ -369,9 +371,9 @@ const StaffPage = () => {
                 required
                 className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-4 py-2.5 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
-                <option value="Admin">Admin</option>
-                <option value="Manager">Manager</option>
-                <option value="Employee">Employee</option>
+                <option value="Admin">{t("staff.admin")}</option>
+                <option value="Manager">{t("staff.manager")}</option>
+                <option value="Employee">{t("staff.employee")}</option>
               </select>
             </div>
             <div className="flex justify-end space-x-3">
@@ -380,13 +382,13 @@ const StaffPage = () => {
                 variant="outline"
                 onClick={() => setIsModalOpen(false)}
               >
-                Cancel
+                {t("buttons.cancel")}
               </Button>
               <Button
                 type="submit"
                 className="bg-blue-600 hover:bg-blue-700"
               >
-                Send Invitation
+                {t("buttons.sendInvitation")}
               </Button>
             </div>
           </form>

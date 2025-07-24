@@ -36,37 +36,37 @@ export default function DashboardHome() {
   const goToBookingsPage = () => router.push('/booking');
 
   return (
-    <div className="space-y-6 p-4 md:p-6">
+    <div className="w-full max-w-full overflow-hidden">
       {/* Page Header */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between mb-6">
         <div>
-          <h2 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">
-            {t("dashboard.title") || "Car Rental Dashboard"}
+          <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">
+            {t("navigation.dashboard")}
           </h2>
           <p className="text-sm md:text-base text-gray-600 dark:text-gray-400 mt-1">
-            {t("dashboard.overview") || "Monitor your fleet performance and manage bookings"}
+            {t("carReports.subtitle")}
           </p>
         </div>
         <div className="flex items-center gap-3">
           <Button onClick={goToCarsPage} size="sm" className="w-full sm:w-auto">
-            {t("buttons.manageCars") || "Manage Cars"}
+            {t("buttons.manageCars")}
           </Button>
         </div>
       </div>
 
       {/* Dashboard Metrics */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-4 mb-6">
         {/* Available Cars */}
-        <div className="rounded-xl md:rounded-2xl border border-gray-200 bg-white p-4 md:p-6 dark:border-gray-800 dark:bg-white/[0.03] hover:shadow-lg transition-shadow">
-          <div className="flex items-center justify-center w-10 h-10 md:w-12 md:h-12 bg-gray-100 rounded-lg md:rounded-xl dark:bg-gray-800">
-            <BoxIconLine className="w-5 h-5 md:w-6 md:h-6 text-gray-800 dark:text-white/90" />
+        <div className="rounded-lg md:rounded-xl border border-gray-200 bg-white p-3 sm:p-4 md:p-5 dark:border-gray-800 dark:bg-white/[0.03] hover:shadow-lg transition-shadow">
+          <div className="flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 bg-gray-100 rounded-lg dark:bg-gray-800">
+            <BoxIconLine className="w-4 h-4 sm:w-5 sm:h-5 text-gray-800 dark:text-white/90" />
           </div>
-          <div className="flex items-end justify-between mt-4 md:mt-5">
+          <div className="flex items-end justify-between mt-3 sm:mt-4">
             <div>
-              <span className="text-xs md:text-sm text-gray-500 dark:text-gray-400">
-                {t("dashboard.availableCars") || "Available Cars"}
+              <span className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">
+                {t("cars.status.available")}
               </span>
-              <h4 className="mt-1 md:mt-2 text-xl md:text-2xl font-bold text-gray-800 dark:text-white/90">
+              <h4 className="mt-1 text-lg sm:text-xl md:text-2xl font-bold text-gray-800 dark:text-white/90">
                 {metrics.availableCars}
               </h4>
             </div>
@@ -74,16 +74,16 @@ export default function DashboardHome() {
         </div>
 
         {/* Active Bookings */}
-        <div className="rounded-xl md:rounded-2xl border border-gray-200 bg-white p-4 md:p-6 dark:border-gray-800 dark:bg-white/[0.03] hover:shadow-lg transition-shadow">
-          <div className="flex items-center justify-center w-10 h-10 md:w-12 md:h-12 bg-gray-100 rounded-lg md:rounded-xl dark:bg-gray-800">
-            <PaperPlaneIcon className="w-5 h-5 md:w-6 md:h-6 text-gray-800 dark:text-white/90" />
+        <div className="rounded-lg md:rounded-xl border border-gray-200 bg-white p-3 sm:p-4 md:p-5 dark:border-gray-800 dark:bg-white/[0.03] hover:shadow-lg transition-shadow">
+          <div className="flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 bg-gray-100 rounded-lg dark:bg-gray-800">
+            <PaperPlaneIcon className="w-4 h-4 sm:w-5 sm:h-5 text-gray-800 dark:text-white/90" />
           </div>
-          <div className="flex items-end justify-between mt-4 md:mt-5">
+          <div className="flex items-end justify-between mt-3 sm:mt-4">
             <div>
-              <span className="text-xs md:text-sm text-gray-500 dark:text-gray-400">
-                {t("dashboard.activeBookings") || "Active Bookings"}
+              <span className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">
+                {t("cars.status.booked")}
               </span>
-              <h4 className="mt-1 md:mt-2 text-xl md:text-2xl font-bold text-gray-800 dark:text-white/90">
+              <h4 className="mt-1 text-lg sm:text-xl md:text-2xl font-bold text-gray-800 dark:text-white/90">
                 {metrics.activeBookings}
               </h4>
             </div>
@@ -91,16 +91,16 @@ export default function DashboardHome() {
         </div>
 
         {/* Total Cars */}
-        <div className="rounded-xl md:rounded-2xl border border-gray-200 bg-white p-4 md:p-6 dark:border-gray-800 dark:bg-white/[0.03] hover:shadow-lg transition-shadow">
-          <div className="flex items-center justify-center w-10 h-10 md:w-12 md:h-12 bg-gray-100 rounded-lg md:rounded-xl dark:bg-gray-800">
-            <DocsIcon className="w-5 h-5 md:w-6 md:h-6 text-gray-800 dark:text-white/90" />
+        <div className="rounded-lg md:rounded-xl border border-gray-200 bg-white p-3 sm:p-4 md:p-5 dark:border-gray-800 dark:bg-white/[0.03] hover:shadow-lg transition-shadow">
+          <div className="flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 bg-gray-100 rounded-lg dark:bg-gray-800">
+            <DocsIcon className="w-4 h-4 sm:w-5 sm:h-5 text-gray-800 dark:text-white/90" />
           </div>
-          <div className="flex items-end justify-between mt-4 md:mt-5">
+          <div className="flex items-end justify-between mt-3 sm:mt-4">
             <div>
-              <span className="text-xs md:text-sm text-gray-500 dark:text-gray-400">
-                {t("dashboard.totalCars") || "Total Cars"}
+              <span className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">
+                {t("cars.status.maintenance")}
               </span>
-              <h4 className="mt-1 md:mt-2 text-xl md:text-2xl font-bold text-gray-800 dark:text-white/90">
+              <h4 className="mt-1 text-lg sm:text-xl md:text-2xl font-bold text-gray-800 dark:text-white/90">
                 {metrics.totalCars}
               </h4>
             </div>
@@ -108,16 +108,16 @@ export default function DashboardHome() {
         </div>
 
         {/* Total Revenue */}
-        <div className="rounded-xl md:rounded-2xl border border-gray-200 bg-white p-4 md:p-6 dark:border-gray-800 dark:bg-white/[0.03] hover:shadow-lg transition-shadow">
-          <div className="flex items-center justify-center w-10 h-10 md:w-12 md:h-12 bg-gray-100 rounded-lg md:rounded-xl dark:bg-gray-800">
-            <DollarLineIcon className="w-5 h-5 md:w-6 md:h-6 text-gray-800 dark:text-white/90" />
+        <div className="rounded-lg md:rounded-xl border border-gray-200 bg-white p-3 sm:p-4 md:p-5 dark:border-gray-800 dark:bg-white/[0.03] hover:shadow-lg transition-shadow">
+          <div className="flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 bg-gray-100 rounded-lg dark:bg-gray-800">
+            <DollarLineIcon className="w-4 h-4 sm:w-5 sm:h-5 text-gray-800 dark:text-white/90" />
           </div>
-          <div className="flex items-end justify-between mt-4 md:mt-5">
+          <div className="flex items-end justify-between mt-3 sm:mt-4">
             <div>
-              <span className="text-xs md:text-sm text-gray-500 dark:text-gray-400">
-                {t("dashboard.totalRevenue") || "Total Revenue"}
+              <span className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">
+                {t("carReports.metrics.totalRevenue")}
               </span>
-              <h4 className="mt-1 md:mt-2 text-xl md:text-2xl font-bold text-gray-800 dark:text-white/90">
+              <h4 className="mt-1 text-lg sm:text-xl md:text-2xl font-bold text-gray-800 dark:text-white/90">
                 ${metrics.totalRevenue.toLocaleString()}
               </h4>
             </div>
@@ -126,7 +126,7 @@ export default function DashboardHome() {
       </div>
 
       {/* Car Availability Overview */}
-      <div className="w-full">
+      <div className="w-full overflow-hidden">
         <CarAvailabilityOverview />
       </div>
     </div>
