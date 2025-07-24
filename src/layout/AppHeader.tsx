@@ -7,9 +7,6 @@ import Image from "next/image";
 import Link from "next/link";
 import React, { useState ,useEffect,useRef} from "react";
 
-// Import navigation items from a shared location
-import { GridIcon, PaperPlaneIcon, DocsIcon, GroupIcon, DollarLineIcon, UserCircleIcon } from "@/icons/index";
-
 const AppHeader: React.FC = () => {
   const [isApplicationMenuOpen, setApplicationMenuOpen] = useState(false);
 
@@ -42,71 +39,6 @@ const AppHeader: React.FC = () => {
       document.removeEventListener("keydown", handleKeyDown);
     };
   }, []);
-
-  // Mobile navigation items
-  const mobileNavItems = [
-    {
-      icon: <GridIcon />,
-      name: "Dashboard",
-      path: "/dashboard-home",
-    },
-    {
-      icon: <PaperPlaneIcon />,
-      name: "Cars",
-      path: "/cars",
-    },
-    {
-      icon: (
-        <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M8 18h8M12 2v2M3.6 9H20.4M4 4h16a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1z"></path>
-          <path d="M2 12h20M6 16v-4M10 16v-4M14 16v-4M18 16v-4"></path>
-        </svg>
-      ),
-      name: "Car Reports",
-      path: "/car-reports",
-    },
-    {
-      icon: <DocsIcon />,
-      name: "Bookings",
-      path: "/booking",
-    },
-    {
-      icon: <GroupIcon />,
-      name: "Clients",
-      path: "/clients",
-    },
-    {
-      icon: (
-        <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-          <circle cx="9" cy="7" r="4"></circle>
-          <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
-          <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-        </svg>
-      ),
-      name: "Staff",
-      path: "/staff",
-    },
-    {
-      icon: <DollarLineIcon />,
-      name: "Payment",
-      path: "/payment",
-    },
-    {
-      icon: (
-        <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path>
-        </svg>
-      ),
-      name: "Maintenance",
-      path: "/maintenance",
-    },
-    {
-      icon: <UserCircleIcon />,
-      name: "Account",
-      path: "/account",
-    },
-  ];
 
   return (
     <header className="sticky top-0 flex w-full bg-white border-gray-200 z-50 dark:border-gray-800 dark:bg-gray-900 lg:border-b">
@@ -226,38 +158,19 @@ const AppHeader: React.FC = () => {
         <div
           className={`${
             isApplicationMenuOpen ? "flex" : "hidden"
-          } flex-col items-center w-full lg:flex shadow-theme-md lg:flex-row lg:justify-end lg:px-0 lg:shadow-none`}
+          } items-center justify-between w-full gap-4 px-5 py-4 lg:flex shadow-theme-md lg:justify-end lg:px-0 lg:shadow-none`}
         >
-          {/* Mobile Navigation Menu - Only visible on mobile when menu is open */}
-          <div className="w-full py-3 lg:hidden">
-            <nav className="px-4">
-              <ul className="flex flex-col space-y-2">
-                {mobileNavItems.map((item) => (
-                  <li key={item.name}>
-                    <Link
-                      href={item.path}
-                      className="flex items-center px-3 py-2 text-gray-700 rounded-lg hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800"
-                      onClick={() => setApplicationMenuOpen(false)}
-                    >
-                      <span className="mr-3">{item.icon}</span>
-                      <span>{item.name}</span>
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </nav>
+          <div className="flex items-center gap-2 2xsm:gap-3">
+            {/* <!-- Dark Mode Toggler --> */}
+            <ThemeToggleButton />
+            {/* <!-- Dark Mode Toggler --> */}
+
+           
+            {/* <!-- Notification Menu Area --> */}
           </div>
-          
-          {/* User controls - visible on both mobile and desktop */}
-          <div className="flex items-center justify-between w-full gap-4 px-5 py-4 lg:justify-end lg:px-0">
-            <div className="flex items-center gap-2 2xsm:gap-3">
-              {/* <!-- Dark Mode Toggler --> */}
-              <ThemeToggleButton />
-              {/* <!-- Dark Mode Toggler --> */}
-            </div>
-            {/* <!-- User Area --> */}
-            <UserDropdown /> 
-          </div>
+          {/* <!-- User Area --> */}
+          <UserDropdown /> 
+    
         </div>
       </div>
     </header>
