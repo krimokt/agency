@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Add Multiple Sample Cars</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+      line-height: 1.6;
+    }
+    h1, h2 {
+      color: #333;
+    }
+    .container {
+      background-color: #f5f5f5;
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+    button {
+      background-color: #4CAF50;
+      color: white;
+      padding: 10px 15px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+    button:hover {
+      background-color: #45a049;
+    }
+    .success {
+      color: #4CAF50;
+      font-weight: bold;
+    }
+    .warning {
+      color: #ff9800;
+      font-weight: bold;
+    }
+    .instructions {
+      background-color: #e9f7ef;
+      padding: 15px;
+      border-left: 4px solid #4CAF50;
+      margin-bottom: 20px;
+    }
+    .car-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+      gap: 15px;
+      margin-top: 20px;
+    }
+    .car-card {
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 15px;
+      background-color: white;
+    }
+    .car-image {
+      width: 100%;
+      height: 150px;
+      object-fit: cover;
+      border-radius: 4px;
+      margin-bottom: 10px;
+    }
+    .car-title {
+      font-weight: bold;
+      margin-bottom: 5px;
+    }
+    .car-details {
+      color: #666;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Add Multiple Sample Cars to Dashboard</h1>
+  
+  <div class="instructions">
+    <h3>Instructions:</h3>
+    <ol>
+      <li>Make sure you've logged in to the dashboard with admin@gmail.com / admin</li>
+      <li>Click the "Add Sample Cars" button below</li>
+      <li>Return to your dashboard and refresh the page</li>
+      <li>Go to the Fleet Management section to see the new cars</li>
+    </ol>
+  </div>
+
+  <div class="container">
+    <h2>Sample Cars to Add</h2>
+    <div class="car-grid" id="carPreview">
+      <!-- Car previews will be inserted here -->
+    </div>
+    <div style="margin-top: 20px;">
+      <button id="addCarsBtn">Add Sample Cars</button>
+      <button id="clearCarsBtn" style="background-color: #f44336; margin-left: 10px;">Clear All Cars</button>
+    </div>
+    <p id="result"></p>
+  </div>
+
+  <script>
+    // Sample cars data
+    const sampleCars = [
+      {
+        name: "Toyota",
+        model: "Camry",
+        year: 2023,
+        colors: ["#1a1a1a", "#ffffff", "#dc2626"],
+        status: "Available",
+        imageUrl: "https://images.unsplash.com/photo-1621007947382-bb3c3994e3fb?q=80&w=2942&auto=format&fit=crop",
+        price: 75,
+        licensePlate: "ABC-1234",
+        category: "Sedan",
+        features: ["Bluetooth", "Backup Camera", "Sunroof"]
+      },
+      {
+        name: "Honda",
+        model: "Accord",
+        year: 2022,
+        colors: ["#0f172a", "#ffffff", "#b91c1c"],
+        status: "Available",
+        imageUrl: "https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?q=80&w=3270&auto=format&fit=crop",
+        price: 80,
+        licensePlate: "HND-5678",
+        category: "Sedan",
+        features: ["Apple CarPlay", "Android Auto", "Lane Assist"]
+      },
+      {
+        name: "BMW",
+        model: "X5",
+        year: 2023,
+        colors: ["#000000", "#c0c0c0", "#1e3a8a"],
+        status: "Available",
+        imageUrl: "https://images.unsplash.com/photo-1603584173870-7f23fdae1b7a?q=80&w=3269&auto=format&fit=crop",
+        price: 150,
+        licensePlate: "LUX-7890",
+        category: "Luxury SUV",
+        features: ["Leather Seats", "Panoramic Roof", "Premium Sound"]
+      },
+      {
+        name: "Tesla",
+        model: "Model 3",
+        year: 2023,
+        colors: ["#374151", "#ffffff", "#7c2d12"],
+        status: "Available",
+        imageUrl: "https://images.unsplash.com/photo-1560958089-b8a1929cea89?q=80&w=3271&auto=format&fit=crop",
+        price: 120,
+        licensePlate: "ELT-9012",
+        category: "Electric",
+        features: ["Autopilot", "Premium Interior", "Long Range"]
+      },
+      {
+        name: "Ford",
+        model: "F-150",
+        year: 2023,
+        colors: ["#0f172a", "#0369a1", "#b91c1c"],
+        status: "Available",
+        imageUrl: "https://images.unsplash.com/photo-1605893477799-b99e3b8b93fe?q=80&w=3270&auto=format&fit=crop",
+        price: 110,
+        licensePlate: "TRK-3456",
+        category: "Truck",
+        features: ["Towing Package", "4x4", "Navigation"]
+      },
+      {
+        name: "Audi",
+        model: "A4",
+        year: 2023,
+        colors: ["#374151", "#ffffff", "#7c2d12"],
+        status: "Available",
+        imageUrl: "https://images.unsplash.com/photo-1606664515524-ed2f786a0bd6?q=80&w=3270&auto=format&fit=crop",
+        price: 85,
+        licensePlate: "AUD-1122",
+        category: "Sedan",
+        features: ["Quattro AWD", "Virtual Cockpit", "Premium Sound"]
+      }
+    ];
+
+    // Generate car preview cards
+    const carPreviewElement = document.getElementById('carPreview');
+    sampleCars.forEach(car => {
+      const carCard = document.createElement('div');
+      carCard.className = 'car-card';
+      carCard.innerHTML = `
+        <img src="${car.imageUrl}" alt="${car.name} ${car.model}" class="car-image">
+        <div class="car-title">${car.name} ${car.model}</div>
+        <div class="car-details">
+          ${car.year} • ${car.category}<br>
+          $${car.price}/day • ${car.status}
+        </div>
+      `;
+      carPreviewElement.appendChild(carCard);
+    });
+
+    // Add cars to local storage
+    document.getElementById('addCarsBtn').addEventListener('click', function() {
+      const LOCAL_DATA_KEY = 'localDashboardData';
+
+      // Get current data from local storage
+      const savedData = localStorage.getItem(LOCAL_DATA_KEY);
+      let localData = savedData ? JSON.parse(savedData) : {
+        bookings: [],
+        cars: [],
+        payments: [],
+        clients: [],
+        maintenanceRecords: []
+      };
+
+      // Add sample cars with unique IDs
+      const newCars = sampleCars.map(car => ({
+        ...car,
+        id: `car-${Date.now()}-${Math.floor(Math.random() * 1000)}`
+      }));
+
+      // Add cars to local data
+      localData.cars = [...(localData.cars || []), ...newCars];
+
+      // Save back to local storage
+      localStorage.setItem(LOCAL_DATA_KEY, JSON.stringify(localData));
+
+      document.getElementById('result').innerHTML = `
+        <span class="success">
+          ${newCars.length} sample cars added successfully! 
+          Please return to your dashboard and refresh the page.
+        </span>
+      `;
+    });
+
+    // Clear all cars from local storage
+    document.getElementById('clearCarsBtn').addEventListener('click', function() {
+      const LOCAL_DATA_KEY = 'localDashboardData';
+
+      // Get current data from local storage
+      const savedData = localStorage.getItem(LOCAL_DATA_KEY);
+      if (!savedData) {
+        document.getElementById('result').innerHTML = '<span class="warning">No data found in local storage.</span>';
+        return;
+      }
+
+      let localData = JSON.parse(savedData);
+      
+      // Clear cars array
+      localData.cars = [];
+
+      // Save back to local storage
+      localStorage.setItem(LOCAL_DATA_KEY, JSON.stringify(localData));
+
+      document.getElementById('result').innerHTML = '<span class="warning">All cars have been removed from local storage. Please refresh your dashboard.</span>';
+    });
+  </script>
+</body>
+</html> 

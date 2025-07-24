@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Add Sample Car</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+      line-height: 1.6;
+    }
+    h1 {
+      color: #333;
+    }
+    .container {
+      background-color: #f5f5f5;
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+    button {
+      background-color: #4CAF50;
+      color: white;
+      padding: 10px 15px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+    button:hover {
+      background-color: #45a049;
+    }
+    .success {
+      color: #4CAF50;
+      font-weight: bold;
+    }
+    .instructions {
+      background-color: #e9f7ef;
+      padding: 15px;
+      border-left: 4px solid #4CAF50;
+      margin-bottom: 20px;
+    }
+    pre {
+      background-color: #f8f8f8;
+      padding: 10px;
+      border-radius: 4px;
+      overflow-x: auto;
+    }
+  </style>
+</head>
+<body>
+  <h1>Add Sample Car to Dashboard</h1>
+  
+  <div class="instructions">
+    <h3>Instructions:</h3>
+    <ol>
+      <li>Make sure you've logged in to the dashboard with admin@gmail.com / admin</li>
+      <li>Click the "Add Sample Car" button below</li>
+      <li>Return to your dashboard and refresh the page</li>
+      <li>Go to the Fleet Management section to see the new car</li>
+    </ol>
+  </div>
+
+  <div class="container">
+    <h2>Sample Car Details</h2>
+    <pre>
+{
+  "name": "Mercedes-Benz",
+  "model": "E-Class",
+  "year": 2023,
+  "status": "Available",
+  "price": 120,
+  "licensePlate": "MB-5678",
+  "category": "Luxury Sedan",
+  "features": ["Leather Seats", "Navigation", "Bluetooth", "Heated Seats", "Sunroof"]
+}
+    </pre>
+    <button id="addCarBtn">Add Sample Car</button>
+    <p id="result"></p>
+  </div>
+
+  <script>
+    document.getElementById('addCarBtn').addEventListener('click', function() {
+      const LOCAL_DATA_KEY = 'localDashboardData';
+
+      // Get current data from local storage
+      const savedData = localStorage.getItem(LOCAL_DATA_KEY);
+      let localData = savedData ? JSON.parse(savedData) : {
+        bookings: [],
+        cars: [],
+        payments: [],
+        clients: [],
+        maintenanceRecords: []
+      };
+
+      // Create a new car
+      const newCar = {
+        id: `car-${Date.now()}`,
+        name: "Mercedes-Benz",
+        model: "E-Class",
+        year: 2023,
+        colors: ["#000000", "#c0c0c0", "#1e3a8a"],
+        status: "Available",
+        imageUrl: "https://images.unsplash.com/photo-1563720223185-11069d519438?q=80&w=3270&auto=format&fit=crop",
+        price: 120,
+        licensePlate: "MB-5678",
+        category: "Luxury Sedan",
+        features: ["Leather Seats", "Navigation", "Bluetooth", "Heated Seats", "Sunroof"]
+      };
+
+      // Add car to local data
+      localData.cars = [...(localData.cars || []), newCar];
+
+      // Save back to local storage
+      localStorage.setItem(LOCAL_DATA_KEY, JSON.stringify(localData));
+
+      document.getElementById('result').innerHTML = '<span class="success">Sample car added successfully! Please return to your dashboard and refresh the page.</span>';
+    });
+  </script>
+</body>
+</html> 

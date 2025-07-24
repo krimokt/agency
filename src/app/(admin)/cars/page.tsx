@@ -292,8 +292,8 @@ export default function CarsPage() {
     features: []
   });
   
-  // Sample car data with real images from the internet
-  const [carData, setCarData] = useState<CarInfo[]>([
+  // Sample car data with real images from the internet - ALWAYS SHOW THESE
+  const sampleCarsData: CarInfo[] = [
     {
       id: "CAR-001",
       name: "Toyota Camry",
@@ -372,11 +372,14 @@ export default function CarsPage() {
       category: "Sedan",
       features: ["Quattro AWD", "Virtual Cockpit", "Premium Sound"]
     }
-  ]);
+  ];
+  
+  // Initialize with sample data
+  const [carData, setCarData] = useState<CarInfo[]>(sampleCarsData);
   
   // Filtered cars based on filter criteria
-  const [filteredCars, setFilteredCars] = useState<CarInfo[]>([]);
-  
+  const [filteredCars, setFilteredCars] = useState<CarInfo[]>(sampleCarsData);
+
   // Reset all filters
   const resetFilters = () => {
     setStatusFilter('');
@@ -413,29 +416,38 @@ export default function CarsPage() {
   // Use filtered metrics if filters are applied, otherwise use regular metrics
   const displayMetrics = isFiltered ? filteredMetrics : metrics;
 
-  // Sync with local data
+  // Sync with local data - but always keep sample data
   useEffect(() => {
     if (localData.cars && localData.cars.length > 0) {
-      // Convert local cars to the CarInfo type
-      const typedLocalCars = localData.cars.map(car => ({
-        id: car.id,
-        name: car.name || "",
-        model: car.model || "",
-        year: car.year || new Date().getFullYear(),
-        colors: car.colors || ["#1a1a1a"],
-        status: car.status as "Available" | "Booked" | "Maintenance" || "Available",
-        imageUrl: car.imageUrl || "https://images.unsplash.com/photo-1605893477799-b99e3b8b93fe?q=80&w=3270&auto=format&fit=crop",
-        price: car.price || 100,
-        licensePlate: car.licensePlate || "",
-        category: car.category || "Sedan",
-        features: car.features || []
-      }));
-      
-      // Merge with sample data, prioritizing local data
-      const localCarIds = typedLocalCars.map(c => c.id);
-      const filteredSampleData = carData.filter(c => !localCarIds.includes(c.id));
-      
-      setCarData([...typedLocalCars, ...filteredSampleData]);
+      try {
+        // Convert local cars to the CarInfo type
+        const typedLocalCars = localData.cars.map(car => ({
+          id: car.id,
+          name: car.name || "",
+          model: car.model || "",
+          year: car.year || new Date().getFullYear(),
+          colors: car.colors || ["#1a1a1a"],
+          status: (car.status as "Available" | "Booked" | "Maintenance") || "Available",
+          imageUrl: car.imageUrl || "https://images.unsplash.com/photo-1605893477799-b99e3b8b93fe?q=80&w=3270&auto=format&fit=crop",
+          price: car.price || 100,
+          licensePlate: car.licensePlate || "",
+          category: car.category || "Sedan",
+          features: car.features || []
+        })) as CarInfo[];
+        
+        // Merge with sample data, prioritizing local data
+        const localCarIds = typedLocalCars.map(c => c.id);
+        const filteredSampleData = sampleCarsData.filter(c => !localCarIds.includes(c.id));
+        
+        const mergedCars: CarInfo[] = [...typedLocalCars, ...filteredSampleData];
+        setCarData(mergedCars);
+        setFilteredCars(mergedCars);
+      } catch (error) {
+        console.error("Error processing car data:", error);
+        // If there's an error, ensure we still show sample data
+        setCarData(sampleCarsData);
+        setFilteredCars(sampleCarsData);
+      }
     }
   }, [localData.cars]);
 
@@ -444,12 +456,12 @@ export default function CarsPage() {
     let filtered = [...carData];
     
     // Apply status filter
-    if (statusFilter !== "all") {
+    if (statusFilter !== "" && statusFilter !== "all") {
       filtered = filtered.filter(car => car.status === statusFilter);
     }
     
     // Apply brand filter
-    if (brandFilter !== "all") {
+    if (brandFilter !== "" && brandFilter !== "all") {
       filtered = filtered.filter(car => car.name === brandFilter);
     }
     
@@ -459,12 +471,12 @@ export default function CarsPage() {
     });
     
     // Apply year filter
-    if (yearFilter !== "all") {
+    if (yearFilter !== "" && yearFilter !== "all") {
       filtered = filtered.filter(car => car.year.toString() === yearFilter);
     }
     
     // Apply color filter
-    if (colorFilter !== "all") {
+    if (colorFilter !== "" && colorFilter !== "all") {
       filtered = filtered.filter(car => car.colors.includes(colorFilter));
     }
     
