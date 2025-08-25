@@ -27,9 +27,9 @@ const MobileUploadContent: React.FC = () => {
   const token = searchParams.get('token');
   
   const [status, setStatus] = useState<UploadStatus | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [uploadingDocument, setUploadingDocument] = useState<string | null>(null);
+  // Track per-document uploading state to allow parallel uploads
+  const [uploading, setUploading] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     if (token) {
@@ -62,8 +62,7 @@ const MobileUploadContent: React.FC = () => {
   const handleDirectUpload = async (documentType: string, file: File | undefined | null) => {
     if (!token || !file) return;
 
-    setIsLoading(true);
-    setUploadingDocument(documentType);
+    setUploading(prev => ({ ...prev, [documentType]: true }));
     setError(null);
 
     try {
@@ -89,8 +88,7 @@ const MobileUploadContent: React.FC = () => {
       console.error('Upload error:', error);
       setError('Upload failed');
     } finally {
-      setIsLoading(false);
-      setUploadingDocument(null);
+      setUploading(prev => ({ ...prev, [documentType]: false }));
       // no-op
     }
   };
@@ -197,17 +195,17 @@ const MobileUploadContent: React.FC = () => {
               <label className={`w-full p-4 rounded-lg border-2 border-dashed transition-colors block cursor-pointer ${
                 status?.documents.idFront
                   ? 'border-green-300 bg-green-50 text-green-700'
-                  : isLoading && uploadingDocument === 'id_front'
+                  : uploading['id_front']
                   ? 'border-blue-300 bg-blue-50 text-blue-700'
                   : 'border-gray-300 hover:border-gray-400 text-gray-700'
               }`}>
-                {status?.documents.idFront ? '✓ ID Front (Uploaded)' : isLoading && uploadingDocument === 'id_front' ? '📤 Uploading ID Front...' : '📷 Upload ID Front'}
+                {status?.documents.idFront ? '✓ ID Front (Uploaded)' : uploading['id_front'] ? '📤 Uploading ID Front...' : '📷 Upload ID Front'}
                 <input
                   type="file"
                   accept="image/*"
                   capture="environment"
                   className="hidden"
-                  disabled={isLoading || status?.documents.idFront}
+                  disabled={uploading['id_front'] || status?.documents.idFront}
                   onChange={(e) => handleDirectUpload('id_front', e.target.files?.[0])}
                 />
               </label>
@@ -215,17 +213,17 @@ const MobileUploadContent: React.FC = () => {
               <label className={`w-full p-4 rounded-lg border-2 border-dashed transition-colors block cursor-pointer ${
                 status?.documents.idBack
                   ? 'border-green-300 bg-green-50 text-green-700'
-                  : isLoading && uploadingDocument === 'id_back'
+                  : uploading['id_back']
                   ? 'border-blue-300 bg-blue-50 text-blue-700'
                   : 'border-gray-300 hover:border-gray-400 text-gray-700'
               }`}>
-                {status?.documents.idBack ? '✓ ID Back (Uploaded)' : isLoading && uploadingDocument === 'id_back' ? '📤 Uploading ID Back...' : '📷 Upload ID Back'}
+                {status?.documents.idBack ? '✓ ID Back (Uploaded)' : uploading['id_back'] ? '📤 Uploading ID Back...' : '📷 Upload ID Back'}
                 <input
                   type="file"
                   accept="image/*"
                   capture="environment"
                   className="hidden"
-                  disabled={isLoading || status?.documents.idBack}
+                  disabled={uploading['id_back'] || status?.documents.idBack}
                   onChange={(e) => handleDirectUpload('id_back', e.target.files?.[0])}
                 />
               </label>
@@ -237,17 +235,17 @@ const MobileUploadContent: React.FC = () => {
               <label className={`w-full p-4 rounded-lg border-2 border-dashed transition-colors block cursor-pointer ${
                 status?.documents.licenseFront
                   ? 'border-green-300 bg-green-50 text-green-700'
-                  : isLoading && uploadingDocument === 'license_front'
+                  : uploading['license_front']
                   ? 'border-blue-300 bg-blue-50 text-blue-700'
                   : 'border-gray-300 hover:border-gray-400 text-gray-700'
               }`}>
-                {status?.documents.licenseFront ? '✓ License Front (Uploaded)' : isLoading && uploadingDocument === 'license_front' ? '📤 Uploading License Front...' : '📷 Upload License Front'}
+                {status?.documents.licenseFront ? '✓ License Front (Uploaded)' : uploading['license_front'] ? '📤 Uploading License Front...' : '📷 Upload License Front'}
                 <input
                   type="file"
                   accept="image/*"
                   capture="environment"
                   className="hidden"
-                  disabled={isLoading || status?.documents.licenseFront}
+                  disabled={uploading['license_front'] || status?.documents.licenseFront}
                   onChange={(e) => handleDirectUpload('license_front', e.target.files?.[0])}
                 />
               </label>
@@ -255,17 +253,17 @@ const MobileUploadContent: React.FC = () => {
               <label className={`w-full p-4 rounded-lg border-2 border-dashed transition-colors block cursor-pointer ${
                 status?.documents.licenseBack
                   ? 'border-green-300 bg-green-50 text-green-700'
-                  : isLoading && uploadingDocument === 'license_back'
+                  : uploading['license_back']
                   ? 'border-blue-300 bg-blue-50 text-blue-700'
                   : 'border-gray-300 hover:border-gray-400 text-gray-700'
               }`}>
-                {status?.documents.licenseBack ? '✓ License Back (Uploaded)' : isLoading && uploadingDocument === 'license_back' ? '📤 Uploading License Back...' : '📷 Upload License Back'}
+                {status?.documents.licenseBack ? '✓ License Back (Uploaded)' : uploading['license_back'] ? '📤 Uploading License Back...' : '📷 Upload License Back'}
                 <input
                   type="file"
                   accept="image/*"
                   capture="environment"
                   className="hidden"
-                  disabled={isLoading || status?.documents.licenseBack}
+                  disabled={uploading['license_back'] || status?.documents.licenseBack}
                   onChange={(e) => handleDirectUpload('license_back', e.target.files?.[0])}
                 />
               </label>
