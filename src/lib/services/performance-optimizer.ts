@@ -36,8 +36,8 @@ export class PerformanceOptimizer {
    * Generate cache key for file
    */
   generateCacheKey(fileBuffer: Buffer, processorId: string): string {
-    const crypto = require('crypto');
-    const hash = crypto.createHash('md5').update(fileBuffer).digest('hex');
+    const { createHash } = require('crypto');
+    const hash = createHash('md5').update(fileBuffer).digest('hex');
     return `${processorId}_${hash}`;
   }
 
