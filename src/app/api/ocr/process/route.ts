@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { promises as fs } from "fs";
 import { DocumentProcessorServiceClient } from "@google-cloud/documentai";
 import { performanceOptimizer, FileProcessor, ProcessingMetrics } from "@/lib/services/performance-optimizer";
 
@@ -45,7 +46,18 @@ export async function POST(req: Request) {
     // Environment validation
     const projectId = process.env.GCP_PROJECT_ID;
     const location = process.env.GCP_LOCATION || 'us';
-    const keyFile = process.env.GCP_KEY_FILE;
+    let keyFile = process.env.GCP_KEY_FILE;
+
+    // Support serverless: accept full JSON via GCP_KEY_JSON and write to /tmp
+    if (!keyFile && process.env.GCP_KEY_JSON) {
+      try {
+        const tmpPath = "/tmp/gcp-key.json";
+        await fs.writeFile(tmpPath, process.env.GCP_KEY_JSON, { encoding: "utf8" });
+        keyFile = tmpPath;
+      } catch (e) {
+        // no-op; will fail validation below if not set
+      }
+    }
 
     if (!projectId || !location || !keyFile) {
       return NextResponse.json({
