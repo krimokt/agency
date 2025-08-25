@@ -1,7 +1,8 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import Button from '@/components/ui/button/Button';
+import { v4 as uuidv4 } from 'uuid';
 
 interface QRCodeGeneratorProps {
   clientId: string;
@@ -25,6 +26,8 @@ const QRCodeGenerator: React.FC<QRCodeGeneratorProps> = ({
   const [qrCodeData, setQrCodeData] = useState<QRCodeData | null>(null);
   const [error, setError] = useState<string | null>(null);
 
+  const effectiveClientId = useMemo(() => clientId || uuidv4(), [clientId]);
+
   const generateQRCode = async () => {
     setIsGenerating(true);
     setError(null);
@@ -35,7 +38,7 @@ const QRCodeGenerator: React.FC<QRCodeGeneratorProps> = ({
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ clientId }),
+        body: JSON.stringify({ clientId: effectiveClientId }),
       });
 
       const data = await response.json();
@@ -78,6 +81,9 @@ const QRCodeGenerator: React.FC<QRCodeGeneratorProps> = ({
         </h2>
         {clientName && (
           <p className="text-gray-600">For client: {clientName}</p>
+        )}
+        {!clientId && (
+          <p className="text-xs text-gray-500 mt-1">Generated Client ID: {effectiveClientId}</p>
         )}
       </div>
 
