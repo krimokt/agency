@@ -8,6 +8,37 @@
 [build.environment]
   NEXT_USE_NETLIFY_EDGE = "false"
   NODE_VERSION = "20"
+  # Force HTTP/JSON for Google SDKs in serverless environments
+  GOOGLE_CLOUD_DISABLE_GRPC = "true"
+
+# -----------------------------------------------------------------------------
+# Environment variables to set in Netlify UI (Site settings → Build & deploy)
+# Do NOT commit secrets here. Set the following keys in the Netlify UI instead:
+#
+# Supabase (required)
+#   NEXT_PUBLIC_SUPABASE_URL
+#   NEXT_PUBLIC_SUPABASE_ANON_KEY
+#   SUPABASE_SERVICE_ROLE_KEY
+#   SUPABASE_JWT_SECRET
+#
+# App URL (optional; API auto-uses request origin if unset)
+#   NEXT_PUBLIC_APP_URL
+#
+# Google Document AI (for /api/ocr/process)
+#   GCP_PROJECT_ID
+#   GCP_LOCATION
+#   GCP_KEY_JSON            # paste full Service Account JSON value
+#   PROCESSOR_ID_CIN_FRONT
+#   PROCESSOR_ID_CIN_BACK
+#   PROCESSOR_ID_DRIVER_FRONT
+#   PROCESSOR_ID_DRIVER_BACK
+#
+# Legacy/alternative route (/api/document-ai) — only if you use it
+#   GOOGLE_CLOUD_PROJECT_ID
+#   GOOGLE_CLOUD_LOCATION
+#   GOOGLE_DOCUMENT_AI_PROCESSOR_ID
+#   GOOGLE_ACCESS_TOKEN
+# -----------------------------------------------------------------------------
 
 # Cache static assets
 [[headers]]
