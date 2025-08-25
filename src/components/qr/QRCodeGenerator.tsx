@@ -26,7 +26,12 @@ const QRCodeGenerator: React.FC<QRCodeGeneratorProps> = ({
   const [qrCodeData, setQrCodeData] = useState<QRCodeData | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const effectiveClientId = useMemo(() => clientId || uuidv4(), [clientId]);
+  const isValidUuid = (value?: string) => {
+    if (!value) return false;
+    return /^(?:[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})$/i.test(value);
+  };
+
+  const effectiveClientId = useMemo(() => (isValidUuid(clientId) ? clientId : uuidv4()), [clientId]);
 
   const generateQRCode = async () => {
     setIsGenerating(true);
@@ -82,7 +87,7 @@ const QRCodeGenerator: React.FC<QRCodeGeneratorProps> = ({
         {clientName && (
           <p className="text-gray-600">For client: {clientName}</p>
         )}
-        {!clientId && (
+        {!isValidUuid(clientId) && (
           <p className="text-xs text-gray-500 mt-1">Generated Client ID: {effectiveClientId}</p>
         )}
       </div>
