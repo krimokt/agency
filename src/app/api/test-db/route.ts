@@ -10,6 +10,24 @@ export async function GET(request: NextRequest) {
       serviceRolePresent: !!process.env.SUPABASE_SERVICE_ROLE_KEY,
     } as const;
 
+    // Connectivity probe to Supabase REST endpoint
+    let connectivity: { restUrl?: string; ok: boolean; status?: number; error?: string } = { ok: false };
+    try {
+      const base = process.env.NEXT_PUBLIC_SUPABASE_URL?.replace(/\/$/, '') || '';
+      const restUrl = base ? `${base}/rest/v1` : '';
+      connectivity.restUrl = restUrl || undefined;
+      if (restUrl) {
+        const resp = await fetch(restUrl, { method: 'HEAD' });
+        connectivity.ok = resp.ok;
+        connectivity.status = resp.status;
+      } else {
+        connectivity.error = 'SUPABASE URL not set';
+      }
+    } catch (e: any) {
+      connectivity.ok = false;
+      connectivity.error = e?.message || String(e);
+    }
+
     const supabase = getSupabaseAdmin();
 
     // Test if qr_tokens table exists
@@ -30,6 +48,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       success: true,
       env: envStatus,
+      connectivity,
       tables: {
         qr_tokens: {
           exists: !qrError,
