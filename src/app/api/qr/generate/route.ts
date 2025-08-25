@@ -29,10 +29,10 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: e?.message || 'Failed to init Supabase admin' }, { status: 500 });
     }
 
-    // Check if client exists in clients table
+    // Check if client exists in clients table (select minimal columns for compatibility)
     const { data: existingClient, error: clientCheckError } = await supabase
       .from('clients')
-      .select('id, first_name, last_name')
+      .select('id')
       .eq('id', clientId)
       .single();
 
@@ -112,7 +112,7 @@ export async function POST(request: NextRequest) {
       );
     } else {
       actualClientId = existingClient.id;
-      console.log('Using existing client with ID:', actualClientId, 'Name:', existingClient.first_name, existingClient.last_name);
+      console.log('Using existing client with ID:', actualClientId);
     }
 
     // Create QR token record in database
