@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+export const runtime = 'nodejs';
 import { getSupabaseAdmin } from '@/lib/supabase';
 import { JWTUtils } from '@/lib/jwt-utils';
 import QRCode from 'qrcode';
