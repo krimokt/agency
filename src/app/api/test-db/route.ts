@@ -3,6 +3,13 @@ import { getSupabaseAdmin } from '@/lib/supabase';
 
 export async function GET(request: NextRequest) {
   try {
+    const envStatus = {
+      supabaseUrlPresent: !!process.env.NEXT_PUBLIC_SUPABASE_URL,
+      supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL || null,
+      anonKeyPresent: !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+      serviceRolePresent: !!process.env.SUPABASE_SERVICE_ROLE_KEY,
+    } as const;
+
     const supabase = getSupabaseAdmin();
 
     // Test if qr_tokens table exists
@@ -22,6 +29,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
+      env: envStatus,
       tables: {
         qr_tokens: {
           exists: !qrError,
