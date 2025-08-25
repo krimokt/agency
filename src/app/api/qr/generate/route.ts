@@ -10,13 +10,24 @@ export async function POST(request: NextRequest) {
     const { clientId } = await request.json();
 
     if (!clientId) {
-      return NextResponse.json(
-        { error: 'Client ID is required' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Client ID is required' }, { status: 400 });
     }
 
-    const supabase = getSupabaseAdmin();
+    // Basic environment validation to aid debugging on hosting
+    if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+      return NextResponse.json({ error: 'Supabase public env vars missing' }, { status: 500 });
+    }
+    if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
+      return NextResponse.json({ error: 'SUPABASE_SERVICE_ROLE_KEY is missing' }, { status: 500 });
+    }
+
+    // Get admin client
+    let supabase;
+    try {
+      supabase = getSupabaseAdmin();
+    } catch (e: any) {
+      return NextResponse.json({ error: e?.message || 'Failed to init Supabase admin' }, { status: 500 });
+    }
 
     // Check if client exists in clients table
     const { data: existingClient, error: clientCheckError } = await supabase
@@ -126,8 +137,9 @@ export async function POST(request: NextRequest) {
     // Generate JWT token
     const jwtToken = JWTUtils.generateQRToken(actualClientId, qrTokenData.id);
 
-    // Create the mobile upload URL using app base URL (fallback to localhost:3000)
-    const appBaseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+    // Create the mobile upload URL using site origin or configured base URL
+    const requestOrigin = new URL(request.url).origin;
+    const appBaseUrl = process.env.NEXT_PUBLIC_APP_URL || requestOrigin || 'http://localhost:3000';
     const uploadUrl = `${appBaseUrl.replace(/\/$/, '')}/mobile-upload?token=${encodeURIComponent(jwtToken)}`;
 
     // Generate QR code
