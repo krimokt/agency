@@ -1,0 +1,44 @@
+# Netlify environment variables (copy into Site settings → Build & deploy → Environment)
+# Fill values from your Supabase + Google Cloud projects. Keep secrets private.
+
+# ---------- Supabase (required) ----------
+NEXT_PUBLIC_SUPABASE_URL=
+NEXT_PUBLIC_SUPABASE_ANON_KEY=
+SUPABASE_SERVICE_ROLE_KEY=
+# Used by JWTUtils; set to your Supabase JWT secret (Project Settings → API)
+SUPABASE_JWT_SECRET=
+
+# ---------- App URL (optional) ----------
+# If unset, the API auto-uses the request origin
+NEXT_PUBLIC_APP_URL=
+
+# ---------- Google Document AI (for /api/ocr/process) ----------
+# GCP project that owns your Document AI processors
+GCP_PROJECT_ID=
+# Region where your processors live (e.g., us or eu)
+GCP_LOCATION=us
+# Paste full Service Account JSON here (Netlify supports multi-line)
+GCP_KEY_JSON=
+# Processor IDs for Moroccan ID + Driving License (from Document AI console)
+PROCESSOR_ID_CIN_FRONT=
+PROCESSOR_ID_CIN_BACK=
+PROCESSOR_ID_DRIVER_FRONT=
+PROCESSOR_ID_DRIVER_BACK=
+# Force HTTP/JSON in serverless (avoid gRPC issues)
+GOOGLE_CLOUD_DISABLE_GRPC=true
+
+# ---------- Alternative legacy route (/api/document-ai) [use only if you call it] ----------
+GOOGLE_CLOUD_PROJECT_ID=
+GOOGLE_CLOUD_LOCATION=us
+GOOGLE_DOCUMENT_AI_PROCESSOR_ID=
+# OAuth access token for Document AI (prefer service account via GCP_KEY_JSON)
+GOOGLE_ACCESS_TOKEN=
+
+# ---------- Optional / diagnostics ----------
+# If you rely on Google Vision for any legacy tests
+GOOGLE_CLOUD_VISION_API_KEY=
+
+# ---------- Build/runtime (Netlify) ----------
+# Matches netlify.toml; setting here is optional if already defined there
+NODE_VERSION=20
+NEXT_USE_NETLIFY_EDGE=false
