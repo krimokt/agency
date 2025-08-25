@@ -6,6 +6,7 @@ import Button from "@/components/ui/button/Button";
 import { Modal } from "@/components/ui/modal";
 import { cn } from "@/lib/utils";
 import AddClientModal from "@/components/form/AddClientModal";
+import QRCodeGenerator from "@/components/qr/QRCodeGenerator";
 
 // Client interface
 interface Client {
@@ -228,6 +229,8 @@ export default function ClientsPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isAddClientModalOpen, setIsAddClientModalOpen] = useState(false);
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
+  const [isQRModalOpen, setIsQRModalOpen] = useState(false);
+  const [qrClient, setQrClient] = useState<{ id?: string; name?: string } | null>(null);
   const [statusFilter, setStatusFilter] = useState<string>('');
   const [searchTerm, setSearchTerm] = useState<string>('');
 
@@ -353,6 +356,13 @@ export default function ClientsPage() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
             </svg>
             Add Client
+          </Button>
+          <Button 
+            onClick={() => { setQrClient({}); setIsQRModalOpen(true); }}
+            variant="outline"
+            className="px-6 py-3 h-auto"
+          >
+            📱 Generate QR (new client)
           </Button>
         </div>
       </div>
@@ -625,6 +635,14 @@ export default function ClientsPage() {
                         >
                           Edit
                         </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => { setQrClient({ id: client.id, name: `${client.firstName} ${client.lastName}` }); setIsQRModalOpen(true); }}
+                          className="px-3 py-1 text-xs"
+                        >
+                          QR
+                        </Button>
                       </div>
                     </td>
                   </tr>
@@ -848,6 +866,17 @@ export default function ClientsPage() {
         onClose={() => setIsAddClientModalOpen(false)}
         onSubmit={handleAddClient}
       />
+
+      {/* QR Code Modal */}
+      <Modal isOpen={isQRModalOpen} onClose={() => setIsQRModalOpen(false)} className="max-w-md w-full p-0">
+        <div className="p-4">
+          <QRCodeGenerator
+            clientId={qrClient?.id || ""}
+            clientName={qrClient?.name}
+            onClose={() => setIsQRModalOpen(false)}
+          />
+        </div>
+      </Modal>
     </div>
   );
 } 
