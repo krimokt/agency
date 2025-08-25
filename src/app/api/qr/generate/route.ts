@@ -3,6 +3,7 @@ export const runtime = 'nodejs';
 import { getSupabaseAdmin } from '@/lib/supabase';
 import { JWTUtils } from '@/lib/jwt-utils';
 import QRCode from 'qrcode';
+import { v4 as uuidv4 } from 'uuid';
 
 export async function POST(request: NextRequest) {
   try {
@@ -108,7 +109,7 @@ export async function POST(request: NextRequest) {
       .from('qr_tokens')
       .insert({
         client_id: actualClientId,
-        token: crypto.randomUUID(), // Generate a unique token
+        token: uuidv4(), // Generate a unique token
         expires_at: new Date(Date.now() + 5 * 60 * 1000).toISOString() // 5 minutes from now
       })
       .select()
