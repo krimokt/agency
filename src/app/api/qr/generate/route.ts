@@ -36,6 +36,7 @@ export async function POST(request: NextRequest) {
     const { data: qrTokenData, error: qrTokenError } = await supabase
       .from('qr_tokens')
       .insert({
+        id: uuidv4(), // avoid relying on DB default gen_random_uuid()
         client_id: actualClientId,
         token: uuidv4(), // Generate a unique token
         expires_at: new Date(Date.now() + 5 * 60 * 1000).toISOString() // 5 minutes from now
