@@ -1,3 +1,4 @@
+import { createHash } from 'crypto';
 /**
  * Performance Optimization Service
  * Optimizes OCR processing for speed and accuracy
@@ -36,7 +37,6 @@ export class PerformanceOptimizer {
    * Generate cache key for file
    */
   generateCacheKey(fileBuffer: Buffer, processorId: string): string {
-    const { createHash } = require('crypto');
     const hash = createHash('md5').update(fileBuffer).digest('hex');
     return `${processorId}_${hash}`;
   }

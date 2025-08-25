@@ -20,6 +20,8 @@ export interface ExtractedFields {
   lastNameArabic?: string;
   dateOfBirth?: string;
   placeOfBirth?: string;
+  nationality?: string;
+  gender?: string;
   
   // CIN (National ID) specific fields - Front side
   cinNumber?: string;

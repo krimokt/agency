@@ -209,9 +209,17 @@ function CheckoutPageContent() {
         // Fetch quotations
         setDebugState((prev) => ({ ...prev, dataFetchStatus: "Fetching quotations..." }))
 
+        // Type guard to satisfy TS: ensure effectiveUserId is a string before querying
+        if (!effectiveUserId) {
+          setDebugState((prev) => ({ ...prev, dataFetchStatus: "No user id available" }))
+          setError("No user found. Please sign in.")
+          return
+        }
+
+        type QuotationRow = Database['public']['Tables']['quotations']['Row']
         const { data: quotationsData, error: quotationsError } = await supabase
           .from("quotations")
-          .select()
+          .select("*")
           .eq("status", "Approved")
           .eq("user_id", effectiveUserId)
 
@@ -241,7 +249,7 @@ function CheckoutPageContent() {
         const initialQuantities: Record<string, number> = {}
         const initialSelectedQuotations = new Set<string>()
 
-        for (const quotationData of quotationsData) {
+        for (const quotationData of quotationsData as QuotationRow[]) {
           const priceOptions: PriceOption[] = []
 
           // Add option 1 if it exists
@@ -556,8 +564,8 @@ function CheckoutPageContent() {
       console.log("Attempting to save payment with data:", paymentData)
 
       // Insert the payment record
-      const { data: paymentResult, error: paymentError } = await supabase
-        .from("payments")
+      const { data: paymentResult, error: paymentError } = await (supabase
+        .from("payments") as any)
         .insert(paymentData)
         .select()
         .single()
@@ -587,17 +595,18 @@ function CheckoutPageContent() {
 
       // If payment was saved successfully, create payment_quotations junction records
       if (paymentResult) {
+        const paymentId = (paymentResult as any)?.id as string | undefined
         // Create payment-quotation links
         const paymentQuotationsData = quotationUUIDs.map((quotationId) => ({
-          payment_id: paymentResult.id,
+          payment_id: paymentId,
           quotation_id: quotationId,
           user_id: effectiveUserId
         }))
 
         if (paymentQuotationsData.length > 0) {
           try {
-            const { error: junctionError } = await supabase
-              .from("payment_quotations")
+            const { error: junctionError } = await (supabase
+              .from("payment_quotations") as any)
               .insert(paymentQuotationsData)
 
             if (junctionError) {
@@ -612,7 +621,9 @@ function CheckoutPageContent() {
         }
 
         // Set the current payment ID and open the upload modal
-        setCurrentPaymentId(paymentResult.id)
+        if (paymentId) {
+          setCurrentPaymentId(paymentId)
+        }
         setIsUploadModalOpen(true)
       } else {
         // Fallback if no payment ID is returned
@@ -680,8 +691,8 @@ function CheckoutPageContent() {
         .getPublicUrl(fileName)
 
       // Update the payment record with the proof URL
-      const { error: updateError } = await supabase
-        .from("payments")
+      const { error: updateError } = await (supabase
+        .from("payments") as any)
         .update({ proof_url: urlData.publicUrl, payment_proof: urlData.publicUrl, status: "processing" })
         .eq("id", currentPaymentId)
 

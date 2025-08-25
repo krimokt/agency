@@ -1,3 +1,4 @@
+import { existsSync } from 'fs';
 /**
  * OCR Configuration Manager
  * Handles environment validation and configuration for Moroccan ID OCR Pipeline
@@ -107,8 +108,7 @@ export class OCRConfigManager {
     // Validate GCP_KEY_FILE exists if provided
     if (process.env.GCP_KEY_FILE) {
       try {
-        const fs = require('fs');
-        if (!fs.existsSync(process.env.GCP_KEY_FILE)) {
+        if (!existsSync(process.env.GCP_KEY_FILE)) {
           result.errors.push(`Service account key file not found: ${process.env.GCP_KEY_FILE}`);
           result.isValid = false;
         }
@@ -262,7 +262,7 @@ export class OCRConfigManager {
         processor: {
           projectId: processorConfig.projectId,
           location: processorConfig.location,
-          keyFileExists: require('fs').existsSync(processorConfig.keyFile),
+          keyFileExists: existsSync(processorConfig.keyFile),
           processorCount: Object.keys(processorConfig.processors).length
         },
         security: {

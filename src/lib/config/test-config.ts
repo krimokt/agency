@@ -13,11 +13,7 @@ export interface ConfigTestResult {
     warnings: string[];
     missingVariables: string[];
   };
-  configuration?: {
-    processor: any;
-    security: any;
-    performance: any;
-  };
+  configuration?: Record<string, any>;
   recommendations: string[];
 }
 

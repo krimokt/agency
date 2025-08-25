@@ -3,6 +3,7 @@
  */
 
 import { OCRConfigManager, validateOCREnvironment } from '../ocr-config';
+import * as fs from 'fs';
 
 // Mock fs module
 jest.mock('fs', () => ({
@@ -49,8 +50,7 @@ describe('OCRConfigManager', () => {
 
     it('should return valid when all required variables are present', () => {
       // Mock fs.existsSync to return true
-      const fs = require('fs');
-      fs.existsSync.mockReturnValue(true);
+      (fs.existsSync as unknown as jest.Mock).mockReturnValue(true);
 
       // Set all required environment variables
       process.env.GCP_PROJECT_ID = 'test-project';
@@ -70,8 +70,7 @@ describe('OCRConfigManager', () => {
 
     it('should return error when key file does not exist', () => {
       // Mock fs.existsSync to return false
-      const fs = require('fs');
-      fs.existsSync.mockReturnValue(false);
+      (fs.existsSync as unknown as jest.Mock).mockReturnValue(false);
 
       process.env.GCP_PROJECT_ID = 'test-project';
       process.env.GCP_LOCATION = 'us';
@@ -88,8 +87,7 @@ describe('OCRConfigManager', () => {
     });
 
     it('should warn about unusual processor ID formats', () => {
-      const fs = require('fs');
-      fs.existsSync.mockReturnValue(true);
+      (fs.existsSync as unknown as jest.Mock).mockReturnValue(true);
 
       process.env.GCP_PROJECT_ID = 'test-project';
       process.env.GCP_LOCATION = 'us';
@@ -106,8 +104,7 @@ describe('OCRConfigManager', () => {
     });
 
     it('should warn about invalid numeric configurations', () => {
-      const fs = require('fs');
-      fs.existsSync.mockReturnValue(true);
+      (fs.existsSync as unknown as jest.Mock).mockReturnValue(true);
 
       process.env.GCP_PROJECT_ID = 'test-project';
       process.env.GCP_LOCATION = 'us';
@@ -133,8 +130,7 @@ describe('OCRConfigManager', () => {
     });
 
     it('should return processor configuration when environment is valid', () => {
-      const fs = require('fs');
-      fs.existsSync.mockReturnValue(true);
+      (fs.existsSync as unknown as jest.Mock).mockReturnValue(true);
 
       process.env.GCP_PROJECT_ID = 'test-project';
       process.env.GCP_LOCATION = 'us';
@@ -158,8 +154,7 @@ describe('OCRConfigManager', () => {
 
   describe('getProcessorId', () => {
     beforeEach(() => {
-      const fs = require('fs');
-      fs.existsSync.mockReturnValue(true);
+      (fs.existsSync as unknown as jest.Mock).mockReturnValue(true);
 
       process.env.GCP_PROJECT_ID = 'test-project';
       process.env.GCP_LOCATION = 'us';
@@ -193,8 +188,7 @@ describe('OCRConfigManager', () => {
 
   describe('getProcessorName', () => {
     beforeEach(() => {
-      const fs = require('fs');
-      fs.existsSync.mockReturnValue(true);
+      (fs.existsSync as unknown as jest.Mock).mockReturnValue(true);
 
       process.env.GCP_PROJECT_ID = 'test-project';
       process.env.GCP_LOCATION = 'us';
