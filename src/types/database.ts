@@ -20,6 +20,38 @@ export interface Database {
         };
         Insert: PaymentQuotationInsert;
       };
+      clients: {
+        Row: {
+          id: string;
+          first_name: string;
+          last_name: string;
+          email?: string;
+          gender: 'male' | 'female' | 'other';
+          nationality: string;
+          date_of_birth?: string;
+          phone?: string;
+          address?: string;
+          id_number?: string;
+          id_issue_date?: string;
+          id_expiry_date?: string;
+          id_front_image_url?: string;
+          id_back_image_url?: string;
+          license_number?: string;
+          license_issue_date?: string;
+          license_expiry_date?: string;
+          license_categories?: string[];
+          license_front_image_url?: string;
+          license_back_image_url?: string;
+          emergency_contact_name?: string;
+          emergency_contact_phone?: string;
+          emergency_contact_relationship?: string;
+          notes?: string;
+          status: 'active' | 'inactive' | 'archived';
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: ClientInsert;
+      };
     };
   };
 }
@@ -35,6 +67,33 @@ export type PaymentInsert = {
 export type PaymentQuotationInsert = {
   payment_id: string;
   quotation_id: string;
+};
+
+export type ClientInsert = {
+  first_name: string;
+  last_name: string;
+  email?: string;
+  gender: 'male' | 'female' | 'other';
+  nationality?: string;
+  date_of_birth?: string;
+  phone?: string;
+  address?: string;
+  id_number?: string;
+  id_issue_date?: string;
+  id_expiry_date?: string;
+  id_front_image_url?: string;
+  id_back_image_url?: string;
+  license_number?: string;
+  license_issue_date?: string;
+  license_expiry_date?: string;
+  license_categories?: string[];
+  license_front_image_url?: string;
+  license_back_image_url?: string;
+  emergency_contact_name?: string;
+  emergency_contact_phone?: string;
+  emergency_contact_relationship?: string;
+  notes?: string;
+  status?: 'active' | 'inactive' | 'archived';
 };
 
 export interface User {

@@ -5,6 +5,7 @@ import Badge from "@/components/ui/badge/Badge";
 import Button from "@/components/ui/button/Button";
 import { Modal } from "@/components/ui/modal";
 import { cn } from "@/lib/utils";
+import AddClientModal from "@/components/form/AddClientModal";
 
 // Client interface
 interface Client {
@@ -223,8 +224,9 @@ const clientsData: Client[] = [
 ];
 
 export default function ClientsPage() {
-  const [clients] = useState<Client[]>(clientsData);
+  const [clients, setClients] = useState<Client[]>(clientsData);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isAddClientModalOpen, setIsAddClientModalOpen] = useState(false);
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
   const [statusFilter, setStatusFilter] = useState<string>('');
   const [searchTerm, setSearchTerm] = useState<string>('');
@@ -299,6 +301,30 @@ export default function ClientsPage() {
     setSelectedClient(null);
   }, []);
 
+  const handleAddClient = useCallback((clientData: any) => {
+    const newClient: Client = {
+      id: Date.now().toString(),
+      firstName: clientData.firstName,
+      lastName: clientData.lastName,
+      email: clientData.email,
+      phone: clientData.phone,
+      profilePhoto: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=40&h=40&fit=crop&crop=face",
+      dateOfBirth: clientData.dateOfBirth,
+      licenseNumber: clientData.licenseNumber,
+      address: clientData.address,
+      joinDate: new Date().toISOString().split('T')[0],
+      status: "active",
+      totalBookings: 0,
+      totalSpent: 0,
+      lastRental: null,
+      emergencyContact: clientData.emergencyContact,
+      notes: clientData.notes,
+    };
+    
+    setClients(prev => [newClient, ...prev]);
+    setIsAddClientModalOpen(false);
+  }, []);
+
   return (
     <div className="space-y-8 p-4 md:p-6">
       {/* Page Header */}
@@ -319,6 +345,7 @@ export default function ClientsPage() {
             <span className="text-sm font-medium">{metrics.total} Clients</span>
           </div>
           <Button 
+            onClick={() => setIsAddClientModalOpen(true)}
             variant="default" 
             className="px-6 py-3 h-auto bg-blue-600 hover:bg-blue-700 shadow-lg hover:shadow-xl transition-all duration-300"
           >
@@ -814,6 +841,13 @@ export default function ClientsPage() {
           </div>
         </Modal>
       )}
+
+      {/* Add Client Modal */}
+      <AddClientModal
+        isOpen={isAddClientModalOpen}
+        onClose={() => setIsAddClientModalOpen(false)}
+        onSubmit={handleAddClient}
+      />
     </div>
   );
 } 

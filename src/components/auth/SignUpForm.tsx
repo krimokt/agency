@@ -22,7 +22,7 @@ export default function SignUpForm() {
   
   const { signUp } = useAuth();
   // Router will be used after email confirmation flow is implemented
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  
   const router = useRouter();
 
   const handleGoogleSignUp = async (e: React.MouseEvent) => {

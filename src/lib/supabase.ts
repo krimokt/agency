@@ -1,25 +1,27 @@
 import { createClient } from '@supabase/supabase-js';
 
-// Get the environment variables - add MCP specific environment variables
+// Get the environment variables
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 // Log environment variables for debugging
 console.log("Supabase Environment Variables:");
 console.log("- URL:", supabaseUrl ? "Set (value hidden)" : "NOT SET");
-console.log("- Key:", supabaseKey ? "Set (value hidden)" : "NOT SET");
+console.log("- Anon Key:", supabaseAnonKey ? "Set (value hidden)" : "NOT SET");
+console.log("- Service Role Key:", supabaseServiceRoleKey ? "Set (value hidden)" : "NOT SET");
 
 // Debug missing environment variables
 if (!supabaseUrl) {
   console.error('Missing NEXT_PUBLIC_SUPABASE_URL environment variable');
 }
 
-if (!supabaseKey) {
+if (!supabaseAnonKey) {
   console.error('Missing NEXT_PUBLIC_SUPABASE_ANON_KEY environment variable');
 }
 
 // Enhanced client with better session persistence options and error handling
-export const supabase = createClient(supabaseUrl || '', supabaseKey || '', {
+export const supabase = createClient(supabaseUrl || '', supabaseAnonKey || '', {
   auth: {
     persistSession: true,
     // Store a local copy of session data
@@ -66,4 +68,27 @@ export const supabase = createClient(supabaseUrl || '', supabaseKey || '', {
   realtime: {
     timeout: 30000,
   },
-}); 
+});
+
+// Service role client for server-side operations (admin access)
+// Only create if service role key is available
+export const supabaseAdmin = supabaseServiceRoleKey 
+  ? createClient(
+      supabaseUrl || '', 
+      supabaseServiceRoleKey, 
+      {
+        auth: {
+          autoRefreshToken: false,
+          persistSession: false,
+        },
+      }
+    )
+  : null;
+
+// Helper function to get admin client with error handling
+export const getSupabaseAdmin = () => {
+  if (!supabaseAdmin) {
+    throw new Error('Supabase admin client not available. Check SUPABASE_SERVICE_ROLE_KEY environment variable.');
+  }
+  return supabaseAdmin;
+}; 

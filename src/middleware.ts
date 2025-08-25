@@ -3,7 +3,7 @@ import type { NextRequest } from 'next/server';
 import { createMiddlewareClient } from '@supabase/auth-helpers-nextjs';
 
 // List of public routes that don't require authentication
-const publicRoutes = ['/signin', '/signup', '/reset-password', '/verify-code'];
+const publicRoutes = ['/signin', '/signup', '/reset-password', '/verify-code', '/mobile-upload'];
 
 // Client accessible dashboard routes
 const clientRoutes = [
@@ -12,7 +12,8 @@ const clientRoutes = [
   '/cars',
   '/account',
   '/maintenance',
-  '/car-reports',
+  '/car-reports', 
+  '/contracts',
   '/order',
   '/staff',
   '/payment',
@@ -21,6 +22,8 @@ const clientRoutes = [
   '/checkoutpage',
   '/verify-code',
   '/booking',
+  '/test-ocr',
+  '/api/test-config',
   '/clients'
 ];
 
