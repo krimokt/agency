@@ -46,7 +46,10 @@ export async function POST(request: NextRequest) {
     if (qrTokenError) {
       console.error('Error creating QR token:', qrTokenError);
       return NextResponse.json(
-        { error: 'Failed to create QR token' },
+        {
+          error: 'Failed to create QR token',
+          details: qrTokenError.message || qrTokenError.hint || qrTokenError.code || 'unknown',
+        },
         { status: 500 }
       );
     }
