@@ -11,7 +11,7 @@ export async function GET(request: NextRequest) {
     } as const;
 
     // Connectivity probe to Supabase REST endpoint
-    let connectivity: { restUrl?: string; ok: boolean; status?: number; error?: string } = { ok: false };
+    const connectivity: { restUrl?: string; ok: boolean; status?: number; error?: string } = { ok: false };
     try {
       const base = process.env.NEXT_PUBLIC_SUPABASE_URL?.replace(/\/$/, '') || '';
       const restUrl = base ? `${base}/rest/v1` : '';
