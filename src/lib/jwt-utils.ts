@@ -10,6 +10,14 @@ export interface QRTokenPayload {
   exp?: number;
 }
 
+export interface CarQRTokenPayload {
+  carId: string;
+  qrTokenId: string;
+  type: 'car_qr_upload';
+  iat?: number;
+  exp?: number;
+}
+
 export class JWTUtils {
   /**
    * Generate a QR token for a client
@@ -25,6 +33,18 @@ export class JWTUtils {
     };
 
     // Token expires in 4 minutes (240 seconds)
+    return jwt.sign(payload, JWT_SECRET, { expiresIn: '4m' });
+  }
+
+  /**
+   * Generate a QR token for a car document upload
+   */
+  static generateCarQRToken(carId: string, qrTokenId: string): string {
+    const payload: CarQRTokenPayload = {
+      carId,
+      qrTokenId,
+      type: 'car_qr_upload'
+    };
     return jwt.sign(payload, JWT_SECRET, { expiresIn: '4m' });
   }
 
@@ -45,6 +65,20 @@ export class JWTUtils {
       return decoded;
     } catch (error) {
       console.error('JWT verification failed:', error);
+      return null;
+    }
+  }
+
+  /** Verify and decode a Car QR token */
+  static verifyCarQRToken(token: string): CarQRTokenPayload | null {
+    try {
+      const decoded = jwt.verify(token, JWT_SECRET) as CarQRTokenPayload;
+      if (decoded.type !== 'car_qr_upload') {
+        return null;
+      }
+      return decoded;
+    } catch (error) {
+      console.error('Car JWT verification failed:', error);
       return null;
     }
   }

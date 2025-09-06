@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Button from '@/components/ui/button/Button';
+import { supabase } from '@/lib/supabase';
 
 // Define interfaces for form data
 interface CarBasicInfo {
@@ -41,6 +42,7 @@ interface CarAddFormProps {
     basicInfo: CarBasicInfo;
     details: CarDetails;
     documents: CarDocuments;
+    documentUrls: Record<string, string | null>;
   }) => void;
   onCancel: () => void;
 }
@@ -48,6 +50,14 @@ interface CarAddFormProps {
 const CarAddForm: React.FC<CarAddFormProps> = ({ onSubmit, onCancel }) => {
   // Current step state
   const [currentStep, setCurrentStep] = useState<number>(1);
+  
+  // Car ID state - will be set when car is created
+  const [carId, setCarId] = useState<string | null>(null);
+  const [isCreatingCar, setIsCreatingCar] = useState(false);
+  
+  // QR upload polling state
+  const [qrJwtToken, setQrJwtToken] = useState<string | null>(null);
+  const [isPollingQR, setIsPollingQR] = useState(false);
   
   // Form data state
   const [basicInfo, setBasicInfo] = useState<CarBasicInfo>({
@@ -90,6 +100,69 @@ const CarAddForm: React.FC<CarAddFormProps> = ({ onSubmit, onCancel }) => {
 
   // Preview image state
   const [imagePreview, setImagePreview] = useState<string>('');
+
+  // Step 3 uploads state
+  const [docUploading, setDocUploading] = useState<Record<string, boolean>>({});
+  const [docUrls, setDocUrls] = useState<Record<string, string | null>>({
+    carteGrise: null,
+    insurance: null,
+    technicalInspection: null,
+    rentalAgreement: null,
+    otherDocuments: null,
+  });
+
+  // License plate split inputs state
+  const [plateLeftNumber, setPlateLeftNumber] = useState<string>('');
+  const [plateArabicLetter, setPlateArabicLetter] = useState<string>('');
+  const [plateRightNumber, setPlateRightNumber] = useState<string>('');
+  const [isArabicKeyboardOpen, setIsArabicKeyboardOpen] = useState<boolean>(false);
+
+  const ARABIC_LETTERS = [
+    'ا','ب','ت','ث','ج','ح','خ','د','ذ','ر','ز','س','ش','ص','ض','ط','ظ','ع','غ','ف','ق','ك','ل','م','ن','ه','و','ي'
+  ];
+
+  // Keep combined plate number in basicInfo
+  useEffect(() => {
+    const left = (plateLeftNumber || '').replace(/\D/g, '');
+    const right = (plateRightNumber || '').replace(/\D/g, '');
+    const letter = (plateArabicLetter || '').replace(/[^\u0600-\u06FF]/g, '');
+    const combined = [left, letter, right].filter(Boolean).join('-');
+    setBasicInfo(prev => ({ ...prev, plateNumber: combined }));
+  }, [plateLeftNumber, plateArabicLetter, plateRightNumber]);
+
+  // QR upload polling effect
+  useEffect(() => {
+    if (!qrJwtToken || !isPollingQR) return;
+
+    const pollInterval = setInterval(async () => {
+      try {
+        const response = await fetch(`/api/mobile-upload-car/status?token=${encodeURIComponent(qrJwtToken)}`);
+        const data = await response.json();
+        
+        if (data.success && data.urls) {
+          // Update document URLs from QR uploads
+          const newDocUrls = { ...docUrls };
+          if (data.urls.carteGrise) newDocUrls.carteGrise = data.urls.carteGrise;
+          if (data.urls.insurance) newDocUrls.insurance = data.urls.insurance;
+          if (data.urls.inspection) newDocUrls.technicalInspection = data.urls.inspection;
+          if (data.urls.rentalAgreement) newDocUrls.rentalAgreement = data.urls.rentalAgreement;
+          if (data.urls.other) newDocUrls.otherDocuments = data.urls.other;
+          
+          setDocUrls(newDocUrls);
+          
+          // Stop polling if upload is completed
+          if (data.status === 'completed') {
+            setIsPollingQR(false);
+            clearInterval(pollInterval);
+          }
+        }
+      } catch (error) {
+        console.error('Error polling QR upload status:', error);
+      }
+    }, 2000); // Poll every 2 seconds
+
+          return () => clearInterval(pollInterval);
+    }, [qrJwtToken, isPollingQR, docUrls]);
   
   // Handle file uploads
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, documentType: keyof Pick<CarDocuments, 'carteGrise' | 'insurance' | 'technicalInspection' | 'rentalAgreement' | 'otherDocuments'>) => {
@@ -193,9 +266,50 @@ const CarAddForm: React.FC<CarAddFormProps> = ({ onSubmit, onCancel }) => {
   ];
 
   // Navigation functions
-  const goToNextStep = () => {
+  const goToNextStep = async () => {
     if (currentStep < 3) {
+      // If going to Step 3, create car record first
+      if (currentStep === 2) {
+        await createCarRecord();
+      }
       setCurrentStep(currentStep + 1);
+    }
+  };
+
+  // Create car record for QR uploads
+  const createCarRecord = async () => {
+    if (carId || isCreatingCar) return; // Already created or creating
+    
+    setIsCreatingCar(true);
+    try {
+      const { data, error } = await supabase
+        .from('add_new_car')
+        .insert({
+          brand: basicInfo.brand,
+          model: basicInfo.model,
+          plate_number: basicInfo.plateNumber,
+          year: basicInfo.year,
+          price_per_day: basicInfo.pricePerDay,
+          category: details.category,
+          status: details.status,
+          features: details.features || [],
+          image_url: details.imageUrl || 'https://images.unsplash.com/photo-1605893477799-b99e3b8b93fe?q=80&w=3270&auto=format&fit=crop'
+        })
+        .select()
+        .single();
+      
+      if (error) {
+        console.error('Error creating car record:', error);
+        alert('Failed to create car record. Please try again.');
+        return;
+      }
+      
+      setCarId(data.id);
+    } catch (error) {
+      console.error('Error creating car record:', error);
+      alert('Failed to create car record. Please try again.');
+    } finally {
+      setIsCreatingCar(false);
     }
   };
 
@@ -206,13 +320,104 @@ const CarAddForm: React.FC<CarAddFormProps> = ({ onSubmit, onCancel }) => {
   };
 
   // Form submission
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    // Validate plate parts before submit
+    if (!plateLeftNumber || !plateArabicLetter || !plateRightNumber) {
+      alert('Please enter a valid plate number: number - Arabic letter - number');
+      setCurrentStep(1);
+      return;
+    }
+    
+    // Validate that at least one document has been uploaded
+    const hasDocuments = Object.values(docUrls).some(url => url !== null);
+    if (!hasDocuments) {
+      alert('Please upload at least one document before saving the car. Go to Step 3 and upload documents first.');
+      setCurrentStep(3);
+      return;
+    }
+    
+    // If car already exists (from QR uploads), just update it
+    if (carId) {
+      try {
+        const { error } = await supabase
+          .from('add_new_car')
+          .update({
+            carte_grise_url: docUrls.carteGrise,
+            insurance_url: docUrls.insurance,
+            technical_inspection_url: docUrls.technicalInspection,
+            rental_agreement_url: docUrls.rentalAgreement,
+            other_documents_url: docUrls.otherDocuments,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', carId);
+        
+        if (error) {
+          console.error('Error updating car:', error);
+          alert('Failed to update car. Please try again.');
+          return;
+        }
+        
+        // Call onSubmit with the existing car data
+        onSubmit({
+          basicInfo,
+          details,
+          documents,
+          documentUrls: docUrls,
+        });
+        return;
+      } catch (error) {
+        console.error('Error updating car:', error);
+        alert('Failed to update car. Please try again.');
+        return;
+      }
+    }
+    
+    // If car doesn't exist, create it (this shouldn't happen in normal flow)
     onSubmit({
       basicInfo,
       details,
       documents,
+      documentUrls: docUrls, // Include the uploaded document URLs
     });
+  };
+
+  // Save selected files from Step 3 to Supabase Storage
+  const uploadSingle = async (key: keyof typeof docUrls, file: File | null) => {
+    if (!file) return null;
+    try {
+      setDocUploading((p) => ({ ...p, [key]: true }));
+      const name = (file as any).name || `${key}`;
+      const extMatch = name.match(/\.(\w+)$/i);
+      const ext = extMatch ? extMatch[0].toLowerCase() : (file.type === 'application/pdf' ? '.pdf' : '.jpg');
+      const path = `manual/${Date.now()}_${key}${ext}`;
+      const { error } = await supabase.storage
+        .from('car-documents')
+        .upload(path, file, { contentType: file.type });
+      if (error) throw error;
+      const { data: { publicUrl } } = supabase.storage.from('car-documents').getPublicUrl(path);
+      setDocUrls((p) => ({ ...p, [key]: publicUrl }));
+      return publicUrl;
+    } catch (error) {
+      console.error(`Error uploading ${key}:`, error);
+      alert(`Failed to upload ${key}. Please try again.`);
+      return null;
+    } finally {
+      setDocUploading((p) => ({ ...p, [key]: false }));
+    }
+  };
+
+  const saveDocuments = async () => {
+    const results = await Promise.all([
+      uploadSingle('carteGrise', documents.carteGrise),
+      uploadSingle('insurance', documents.insurance),
+      uploadSingle('technicalInspection', documents.technicalInspection),
+      uploadSingle('rentalAgreement', documents.rentalAgreement),
+      uploadSingle('otherDocuments', documents.otherDocuments),
+    ]);
+    
+    const uploadedCount = results.filter(url => url !== null).length;
+    alert(`Documents uploaded successfully (${uploadedCount} files). Click "Save Car & Complete" to save the car with all information.`);
   };
 
   // Car brands for dropdown
@@ -260,15 +465,15 @@ const CarAddForm: React.FC<CarAddFormProps> = ({ onSubmit, onCancel }) => {
     <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700">
       {/* Form Header */}
       <div className="p-6 border-b border-gray-200 dark:border-gray-700">
-        <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-          {currentStep === 1 && '🟦 STEP 1: Basic Information'}
-          {currentStep === 2 && '🟨 STEP 2: Car Details'}
-          {currentStep === 3 && '🟥 STEP 3: Required Documents'}
+        <h2 className="text-2xl font-semibold text-gray-900 dark:text-white">
+          {currentStep === 1 && 'Step 1 — Basic Information'}
+          {currentStep === 2 && 'Step 2 — Car Details'}
+          {currentStep === 3 && 'Step 3 — Required Documents *'}
         </h2>
         <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-          {currentStep === 1 && 'Provide basic information about the car'}
-          {currentStep === 2 && 'Add details and features of the car'}
-          {currentStep === 3 && 'Upload required documentation'}
+          {currentStep === 1 && 'Provide basic information about the car.'}
+          {currentStep === 2 && 'Add details and features of the car.'}
+          {currentStep === 3 && 'Upload at least one required document to save the car.'}
         </p>
       </div>
 
@@ -303,7 +508,9 @@ const CarAddForm: React.FC<CarAddFormProps> = ({ onSubmit, onCancel }) => {
             }`}>
               3
             </div>
-            <div className="ml-2 text-sm font-medium text-gray-900 dark:text-white">Documents</div>
+            <div className="ml-2 text-sm font-medium text-gray-900 dark:text-white">
+              Documents <span className="text-red-500">*</span>
+            </div>
           </div>
         </div>
       </div>
@@ -367,18 +574,61 @@ const CarAddForm: React.FC<CarAddFormProps> = ({ onSubmit, onCancel }) => {
               </div>
 
               <div>
-                <label htmlFor="plateNumber" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Plate Number <span className="text-red-500">*</span>
                 </label>
-                <input
-                  type="text"
-                  id="plateNumber"
-                  value={basicInfo.plateNumber}
-                  onChange={(e) => setBasicInfo({ ...basicInfo, plateNumber: e.target.value })}
-                  required
-                  placeholder="e.g. ABC-1234"
-                  className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-4 py-3 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
+                <div className="grid grid-cols-3 gap-3">
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
+                    value={plateLeftNumber}
+                    onChange={(e) => setPlateLeftNumber(e.target.value.replace(/[^0-9]/g, ''))}
+                    required
+                    placeholder="12345"
+                    className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-4 py-3 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+
+                  <div className="relative">
+                    <input
+                      type="text"
+                      readOnly
+                      dir="rtl"
+                      value={plateArabicLetter}
+                      onClick={() => setIsArabicKeyboardOpen(v => !v)}
+                      placeholder="حرف"
+                      className="w-full cursor-pointer rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-4 py-3 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                    {isArabicKeyboardOpen && (
+                      <div className="absolute z-20 mt-2 w-64 p-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-lg grid grid-cols-7 gap-2">
+                        {ARABIC_LETTERS.map((letter) => (
+                          <button
+                            type="button"
+                            key={letter}
+                            onClick={() => { setPlateArabicLetter(letter); setIsArabicKeyboardOpen(false); }}
+                            className={`px-2 py-1 rounded text-lg leading-none border ${plateArabicLetter === letter ? 'bg-blue-600 text-white border-blue-600' : 'border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700'}`}
+                          >
+                            {letter}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
+                    value={plateRightNumber}
+                    onChange={(e) => setPlateRightNumber(e.target.value.replace(/[^0-9]/g, ''))}
+                    required
+                    placeholder="26"
+                    className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-4 py-3 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+                <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
+                  Preview: <span dir="rtl" className="font-mono">{plateLeftNumber || '____'} | {plateArabicLetter || 'ـ'} | {plateRightNumber || '__'}</span>
+                </p>
               </div>
 
               <div>
@@ -578,12 +828,69 @@ const CarAddForm: React.FC<CarAddFormProps> = ({ onSubmit, onCancel }) => {
             <div className="space-y-6">
               <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 mb-6">
                 <div className="flex items-center text-blue-700 dark:text-blue-300 font-medium">
-                  <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                  <span>Vehicle: {basicInfo.brand} {basicInfo.model} {basicInfo.year} ({basicInfo.plateNumber})</span>
+                </div>
+              </div>
+
+              <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4 mb-6">
+                <div className="flex items-start">
+                  <svg className="w-5 h-5 text-red-600 dark:text-red-400 mt-0.5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
                   </svg>
-                  <span>
-                    🚗 Vehicle: {basicInfo.brand} {basicInfo.model} {basicInfo.year} ({basicInfo.plateNumber})
-                  </span>
+                  <div>
+                    <h4 className="text-sm font-medium text-red-800 dark:text-red-300">Required:</h4>
+                    <p className="text-sm text-red-700 dark:text-red-400 mt-1">
+                      You must upload at least one document before saving the car. The car cannot be saved without documents.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Mobile QR Upload */}
+              <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
+                <h3 className="text-base font-semibold text-gray-900 dark:text-white mb-2">Upload via Mobile</h3>
+                <p className="text-sm text-gray-600 dark:text-gray-300 mb-3">Generate a QR code to upload documents from a phone.</p>
+                
+                {/* Car Creation Status */}
+                {isCreatingCar && (
+                  <div className="mb-4 p-3 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
+                    <div className="flex items-center">
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-yellow-600 mr-2"></div>
+                      <span className="text-sm text-yellow-700 dark:text-yellow-300">
+                        Creating car record for QR uploads...
+                      </span>
+                    </div>
+                  </div>
+                )}
+
+                {/* QR Upload Status */}
+                {isPollingQR && (
+                  <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+                    <div className="flex items-center">
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600 mr-2"></div>
+                      <span className="text-sm text-blue-700 dark:text-blue-300">
+                        Waiting for mobile uploads... Scan the QR code with your phone to upload documents.
+                      </span>
+                    </div>
+                  </div>
+                )}
+                
+                {/* Lazy require to avoid SSR issues */}
+                <div className="max-w-md">
+                  {(() => {
+                    const mod = require('../qr/CarQRCodeGenerator');
+                    const CarQR = mod && mod.default ? mod.default : null;
+                    return CarQR ? (
+                      <CarQR 
+                        carId={carId || 'temp-car'} 
+                        carLabel={`${basicInfo.brand} ${basicInfo.model}`} 
+                        onTokenGenerated={(jwtToken: string) => {
+                          setQrJwtToken(jwtToken);
+                          setIsPollingQR(true);
+                        }}
+                      />
+                    ) : null;
+                  })()}
                 </div>
               </div>
 
@@ -592,10 +899,10 @@ const CarAddForm: React.FC<CarAddFormProps> = ({ onSubmit, onCancel }) => {
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                   <div className="flex-1">
                     <label htmlFor="carteGrise" className="block text-base font-medium text-gray-900 dark:text-white mb-1">
-                      📄 Carte Grise (Vehicle Registration) <span className="text-red-500">*</span>
+                      Carte Grise (Vehicle Registration)
                     </label>
                     <p className="text-sm text-gray-500 dark:text-gray-400 mb-3">
-                      Official car ownership paper (required)
+                      Official car ownership paper
                     </p>
                     <div className="flex flex-wrap gap-4">
                       <div className="flex-1 min-w-[200px]">
@@ -603,18 +910,22 @@ const CarAddForm: React.FC<CarAddFormProps> = ({ onSubmit, onCancel }) => {
                           type="file"
                           id="carteGrise"
                           onChange={(e) => handleFileChange(e, 'carteGrise')}
-                          required
                           className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-4 py-2 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                         />
                         {documents.carteGrise && (
                           <p className="mt-1 text-xs text-green-600 dark:text-green-400">
-                            ✅ {documents.carteGrise.name}
+                            Selected: {documents.carteGrise.name}
+                          </p>
+                        )}
+                        {docUrls.carteGrise && (
+                          <p className="mt-1 text-xs text-blue-600 dark:text-blue-400">
+                            ✓ Saved {isPollingQR ? '(via QR)' : '(manual)'}
                           </p>
                         )}
                       </div>
                       <div>
                         <label htmlFor="carteGriseIssued" className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                          📅 Issued Date
+                          Issued Date
                         </label>
                         <input
                           type="date"
@@ -634,10 +945,10 @@ const CarAddForm: React.FC<CarAddFormProps> = ({ onSubmit, onCancel }) => {
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                   <div className="flex-1">
                     <label htmlFor="insurance" className="block text-base font-medium text-gray-900 dark:text-white mb-1">
-                      📄 Assurance Voiture (Insurance) <span className="text-red-500">*</span>
+                      Assurance Voiture (Insurance)
                     </label>
                     <p className="text-sm text-gray-500 dark:text-gray-400 mb-3">
-                      Valid insurance paper (required)
+                      Valid insurance paper
                     </p>
                     <div className="flex flex-wrap gap-4">
                       <div className="flex-1 min-w-[200px]">
@@ -645,18 +956,22 @@ const CarAddForm: React.FC<CarAddFormProps> = ({ onSubmit, onCancel }) => {
                           type="file"
                           id="insurance"
                           onChange={(e) => handleFileChange(e, 'insurance')}
-                          required
                           className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-4 py-2 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                         />
                         {documents.insurance && (
                           <p className="mt-1 text-xs text-green-600 dark:text-green-400">
-                            ✅ {documents.insurance.name}
+                            Selected: {documents.insurance.name}
+                          </p>
+                        )}
+                        {docUrls.insurance && (
+                          <p className="mt-1 text-xs text-blue-600 dark:text-blue-400">
+                            ✓ Saved {isPollingQR ? '(via QR)' : '(manual)'}
                           </p>
                         )}
                       </div>
                       <div>
                         <label htmlFor="insuranceIssued" className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                          📅 Issued Date
+                          Issued Date
                         </label>
                         <input
                           type="date"
@@ -668,7 +983,7 @@ const CarAddForm: React.FC<CarAddFormProps> = ({ onSubmit, onCancel }) => {
                       </div>
                       <div>
                         <label htmlFor="insuranceExpiry" className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                          ⏳ Expiry Date
+                          Expiry Date
                         </label>
                         <input
                           type="date"
@@ -682,17 +997,17 @@ const CarAddForm: React.FC<CarAddFormProps> = ({ onSubmit, onCancel }) => {
                         <div className="flex items-center">
                           {getExpiryStatus(documents.insuranceDates.expiryDate).status === 'valid' && (
                             <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300">
-                              ✅ Valid
+                              Valid
                             </span>
                           )}
                           {getExpiryStatus(documents.insuranceDates.expiryDate).status === 'warning' && (
                             <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300">
-                              ⚠️ {getExpiryStatus(documents.insuranceDates.expiryDate).text}
+                              {getExpiryStatus(documents.insuranceDates.expiryDate).text}
                             </span>
                           )}
                           {getExpiryStatus(documents.insuranceDates.expiryDate).status === 'expired' && (
                             <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300">
-                              ❌ Expired
+                              Expired
                             </span>
                           )}
                         </div>
@@ -707,7 +1022,7 @@ const CarAddForm: React.FC<CarAddFormProps> = ({ onSubmit, onCancel }) => {
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                   <div className="flex-1">
                     <label htmlFor="technicalInspection" className="block text-base font-medium text-gray-900 dark:text-white mb-1">
-                      📄 Visite Technique (Inspection Report)
+                      Visite Technique (Inspection Report)
                     </label>
                     <p className="text-sm text-gray-500 dark:text-gray-400 mb-3">
                       Proves the car passed technical inspection
@@ -722,13 +1037,18 @@ const CarAddForm: React.FC<CarAddFormProps> = ({ onSubmit, onCancel }) => {
                         />
                         {documents.technicalInspection && (
                           <p className="mt-1 text-xs text-green-600 dark:text-green-400">
-                            ✅ {documents.technicalInspection.name}
+                            Selected: {documents.technicalInspection.name}
+                          </p>
+                        )}
+                        {docUrls.technicalInspection && (
+                          <p className="mt-1 text-xs text-blue-600 dark:text-blue-400">
+                            ✓ Saved {isPollingQR ? '(via QR)' : '(manual)'}
                           </p>
                         )}
                       </div>
                       <div>
                         <label htmlFor="technicalInspectionIssued" className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                          📅 Issued Date
+                          Issued Date
                         </label>
                         <input
                           type="date"
@@ -740,7 +1060,7 @@ const CarAddForm: React.FC<CarAddFormProps> = ({ onSubmit, onCancel }) => {
                       </div>
                       <div>
                         <label htmlFor="technicalInspectionExpiry" className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                          ⏳ Expiry Date
+                          Expiry Date
                         </label>
                         <input
                           type="date"
@@ -754,17 +1074,17 @@ const CarAddForm: React.FC<CarAddFormProps> = ({ onSubmit, onCancel }) => {
                         <div className="flex items-center">
                           {getExpiryStatus(documents.technicalInspectionDates.expiryDate).status === 'valid' && (
                             <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300">
-                              ✅ Valid
+                              Valid
                             </span>
                           )}
                           {getExpiryStatus(documents.technicalInspectionDates.expiryDate).status === 'warning' && (
                             <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300">
-                              ⚠️ {getExpiryStatus(documents.technicalInspectionDates.expiryDate).text}
+                              {getExpiryStatus(documents.technicalInspectionDates.expiryDate).text}
                             </span>
                           )}
                           {getExpiryStatus(documents.technicalInspectionDates.expiryDate).status === 'expired' && (
                             <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300">
-                              ❌ Expired
+                              Expired
                             </span>
                           )}
                         </div>
@@ -779,7 +1099,7 @@ const CarAddForm: React.FC<CarAddFormProps> = ({ onSubmit, onCancel }) => {
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                   <div className="flex-1">
                     <label htmlFor="rentalAgreement" className="block text-base font-medium text-gray-900 dark:text-white mb-1">
-                      📄 Contrat de Location (Rental Agreement)
+                      Contrat de Location (Rental Agreement)
                     </label>
                     <p className="text-sm text-gray-500 dark:text-gray-400 mb-3">
                       Optional contract if needed for business
@@ -794,13 +1114,18 @@ const CarAddForm: React.FC<CarAddFormProps> = ({ onSubmit, onCancel }) => {
                         />
                         {documents.rentalAgreement && (
                           <p className="mt-1 text-xs text-green-600 dark:text-green-400">
-                            ✅ {documents.rentalAgreement.name}
+                            Selected: {documents.rentalAgreement.name}
+                          </p>
+                        )}
+                        {docUrls.rentalAgreement && (
+                          <p className="mt-1 text-xs text-blue-600 dark:text-blue-400">
+                            ✓ Saved {isPollingQR ? '(via QR)' : '(manual)'}
                           </p>
                         )}
                       </div>
                       <div>
                         <label htmlFor="rentalAgreementStart" className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                          📅 Start Date
+                          Start Date
                         </label>
                         <input
                           type="date"
@@ -812,7 +1137,7 @@ const CarAddForm: React.FC<CarAddFormProps> = ({ onSubmit, onCancel }) => {
                       </div>
                       <div>
                         <label htmlFor="rentalAgreementEnd" className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                          ⏳ End Date
+                          End Date
                         </label>
                         <input
                           type="date"
@@ -832,7 +1157,7 @@ const CarAddForm: React.FC<CarAddFormProps> = ({ onSubmit, onCancel }) => {
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                   <div className="flex-1">
                     <label htmlFor="otherDocuments" className="block text-base font-medium text-gray-900 dark:text-white mb-1">
-                      📄 Other Documents
+                      Other Documents
                     </label>
                     <p className="text-sm text-gray-500 dark:text-gray-400 mb-3">
                       Any additional paperwork
@@ -847,16 +1172,28 @@ const CarAddForm: React.FC<CarAddFormProps> = ({ onSubmit, onCancel }) => {
                         />
                         {documents.otherDocuments && (
                           <p className="mt-1 text-xs text-green-600 dark:text-green-400">
-                            ✅ {documents.otherDocuments.name}
+                            Selected: {documents.otherDocuments.name}
+                          </p>
+                        )}
+                        {docUrls.otherDocuments && (
+                          <p className="mt-1 text-xs text-blue-600 dark:text-blue-400">
+                            ✓ Saved {isPollingQR ? '(via QR)' : '(manual)'}
                           </p>
                         )}
                       </div>
                       <div className="flex items-center">
-                        <span className="text-sm text-gray-500 dark:text-gray-400">📅 Optional</span>
+                        <span className="text-sm text-gray-500 dark:text-gray-400">Optional</span>
                       </div>
                     </div>
                   </div>
                 </div>
+              </div>
+
+              {/* Upload Documents */}
+              <div className="flex justify-end">
+                <Button type="button" onClick={saveDocuments} className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700">
+                  Upload Documents
+                </Button>
               </div>
             </div>
           )}
@@ -871,7 +1208,7 @@ const CarAddForm: React.FC<CarAddFormProps> = ({ onSubmit, onCancel }) => {
               onClick={goToPreviousStep}
               className="px-6 py-2.5"
             >
-              ⬅ Back
+              Back
             </Button>
           ) : (
             <Button
@@ -890,14 +1227,22 @@ const CarAddForm: React.FC<CarAddFormProps> = ({ onSubmit, onCancel }) => {
               onClick={goToNextStep}
               className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700"
             >
-              Next ➡
+              Next
             </Button>
           ) : (
             <Button
               type="submit"
-              className="px-6 py-2.5 bg-green-600 hover:bg-green-700"
+              className={`px-6 py-2.5 ${
+                Object.values(docUrls).some(url => url !== null) 
+                  ? 'bg-green-600 hover:bg-green-700' 
+                  : 'bg-gray-400 cursor-not-allowed'
+              }`}
+              disabled={!Object.values(docUrls).some(url => url !== null)}
             >
-              ✅ Submit Car
+              {Object.values(docUrls).some(url => url !== null) 
+                ? 'Save Car & Complete' 
+                : 'Upload Documents First'
+              }
             </Button>
           )}
         </div>
