@@ -639,7 +639,7 @@ export default function CarsPage() {
                       <TableCell className="px-6 py-4">
                         <Badge
                           size="sm"
-                          color="default"
+                          color="primary"
                         >
                           {car.category}
                         </Badge>
@@ -768,7 +768,7 @@ export default function CarsPage() {
                            </div>
                     <div className="flex justify-between text-sm">
                       <span className="text-gray-500 dark:text-gray-400">Category:</span>
-                      <Badge size="sm" color="default">{car.category}</Badge>
+                      <Badge size="sm" color="primary">{car.category}</Badge>
                          </div>
                     <div className="flex justify-between text-sm">
                       <span className="text-gray-500 dark:text-gray-400">Price/Day:</span>
@@ -914,7 +914,7 @@ export default function CarsPage() {
                 <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">Features</h4>
                 <div className="flex flex-wrap gap-2">
                   {selectedCar.features?.map((feature, index) => (
-                    <Badge key={index} size="sm" color="default">
+                    <Badge key={index} size="sm" color="primary">
                       {feature}
                     </Badge>
                      ))}

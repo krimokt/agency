@@ -1,6 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, Suspense, lazy } from 'react';
 import Button from '@/components/ui/button/Button';
 import { supabase } from '@/lib/supabase';
+
+// Lazy load the QR code generator to avoid SSR issues
+const CarQRCodeGenerator = lazy(() => import('../qr/CarQRCodeGenerator'));
 
 // Define interfaces for form data
 interface CarBasicInfo {
@@ -875,22 +878,18 @@ const CarAddForm: React.FC<CarAddFormProps> = ({ onSubmit, onCancel }) => {
                   </div>
                 )}
                 
-                {/* Lazy require to avoid SSR issues */}
+                {/* Lazy load QR code generator to avoid SSR issues */}
                 <div className="max-w-md">
-                  {(() => {
-                    const mod = require('../qr/CarQRCodeGenerator');
-                    const CarQR = mod && mod.default ? mod.default : null;
-                    return CarQR ? (
-                      <CarQR 
-                        carId={carId || 'temp-car'} 
-                        carLabel={`${basicInfo.brand} ${basicInfo.model}`} 
-                        onTokenGenerated={(jwtToken: string) => {
-                          setQrJwtToken(jwtToken);
-                          setIsPollingQR(true);
-                        }}
-                      />
-                    ) : null;
-                  })()}
+                  <Suspense fallback={<div className="text-center p-4">Loading QR generator...</div>}>
+                    <CarQRCodeGenerator 
+                      carId={carId || 'temp-car'} 
+                      carLabel={`${basicInfo.brand} ${basicInfo.model}`} 
+                      onTokenGenerated={(jwtToken: string) => {
+                        setQrJwtToken(jwtToken);
+                        setIsPollingQR(true);
+                      }}
+                    />
+                  </Suspense>
                 </div>
               </div>
 
