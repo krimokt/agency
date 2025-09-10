@@ -303,7 +303,16 @@ export default function CarsPage() {
           insurance_url: carData.documentUrls.insurance,
           technical_inspection_url: carData.documentUrls.technicalInspection,
           rental_agreement_url: carData.documentUrls.rentalAgreement,
-          other_documents_url: carData.documentUrls.otherDocuments
+          other_documents_url: carData.documentUrls.otherDocuments,
+          // Include document dates
+          carte_grise_issue_date: carData.documents.carteGriseDates?.issuedDate || null,
+          carte_grise_expiry_date: carData.documents.carteGriseDates?.expiryDate || null,
+          insurance_issue_date: carData.documents.insuranceDates?.issuedDate || null,
+          insurance_expiry_date: carData.documents.insuranceDates?.expiryDate || null,
+          technical_inspection_issue_date: carData.documents.technicalInspectionDates?.issuedDate || null,
+          technical_inspection_expiry_date: carData.documents.technicalInspectionDates?.expiryDate || null,
+          rental_agreement_start_date: carData.documents.rentalAgreementDates?.startDate || null,
+          rental_agreement_end_date: carData.documents.rentalAgreementDates?.endDate || null
         })
         .select()
         .single();
@@ -651,6 +660,18 @@ export default function CarsPage() {
                 </svg>
               </button>
           </div>
+          
+          <Button 
+              variant="outline"
+              onClick={() => router.push('/document-management')}
+              className="text-blue-600 border-blue-300 hover:bg-blue-50"
+          >
+              <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+              Document Management
+          </Button>
+          
           <Button 
               onClick={() => setIsModalOpen(true)}
               className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3"

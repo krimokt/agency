@@ -351,6 +351,15 @@ const CarAddForm: React.FC<CarAddFormProps> = ({ onSubmit, onCancel }) => {
             technical_inspection_url: docUrls.technicalInspection,
             rental_agreement_url: docUrls.rentalAgreement,
             other_documents_url: docUrls.otherDocuments,
+            // Document dates
+            carte_grise_issue_date: documents.carteGriseDates.issuedDate || null,
+            carte_grise_expiry_date: documents.carteGriseDates.expiryDate || null,
+            insurance_issue_date: documents.insuranceDates.issuedDate || null,
+            insurance_expiry_date: documents.insuranceDates.expiryDate || null,
+            technical_inspection_issue_date: documents.technicalInspectionDates.issuedDate || null,
+            technical_inspection_expiry_date: documents.technicalInspectionDates.expiryDate || null,
+            rental_agreement_start_date: documents.rentalAgreementDates.startDate || null,
+            rental_agreement_end_date: documents.rentalAgreementDates.endDate || null,
             updated_at: new Date().toISOString()
           })
           .eq('id', carId);

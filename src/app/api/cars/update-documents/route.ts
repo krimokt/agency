@@ -11,17 +11,32 @@ export async function POST(request: NextRequest) {
 
     const supabase = getSupabaseAdmin();
 
-    // Update the car with document URLs
+    // Prepare update data with both URLs and dates
+    const updateData: any = {
+      updated_at: new Date().toISOString()
+    };
+
+    // Handle document URLs
+    if (documents.carte_grise_url !== undefined) updateData.carte_grise_url = documents.carte_grise_url || null;
+    if (documents.insurance_url !== undefined) updateData.insurance_url = documents.insurance_url || null;
+    if (documents.technical_inspection_url !== undefined) updateData.technical_inspection_url = documents.technical_inspection_url || null;
+    if (documents.rental_agreement_url !== undefined) updateData.rental_agreement_url = documents.rental_agreement_url || null;
+    if (documents.other_documents_url !== undefined) updateData.other_documents_url = documents.other_documents_url || null;
+
+    // Handle document dates
+    if (documents.carte_grise_issue_date !== undefined) updateData.carte_grise_issue_date = documents.carte_grise_issue_date || null;
+    if (documents.carte_grise_expiry_date !== undefined) updateData.carte_grise_expiry_date = documents.carte_grise_expiry_date || null;
+    if (documents.insurance_issue_date !== undefined) updateData.insurance_issue_date = documents.insurance_issue_date || null;
+    if (documents.insurance_expiry_date !== undefined) updateData.insurance_expiry_date = documents.insurance_expiry_date || null;
+    if (documents.technical_inspection_issue_date !== undefined) updateData.technical_inspection_issue_date = documents.technical_inspection_issue_date || null;
+    if (documents.technical_inspection_expiry_date !== undefined) updateData.technical_inspection_expiry_date = documents.technical_inspection_expiry_date || null;
+    if (documents.rental_agreement_start_date !== undefined) updateData.rental_agreement_start_date = documents.rental_agreement_start_date || null;
+    if (documents.rental_agreement_end_date !== undefined) updateData.rental_agreement_end_date = documents.rental_agreement_end_date || null;
+
+    // Update the car with document URLs and dates
     const { data, error } = await supabase
       .from('add_new_car')
-      .update({
-        carte_grise_url: documents.carte_grise_url || null,
-        insurance_url: documents.insurance_url || null,
-        technical_inspection_url: documents.technical_inspection_url || null,
-        rental_agreement_url: documents.rental_agreement_url || null,
-        other_documents_url: documents.other_documents_url || null,
-        updated_at: new Date().toISOString()
-      })
+      .update(updateData)
       .eq('id', carId)
       .select()
       .single();
