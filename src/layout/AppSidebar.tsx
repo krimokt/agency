@@ -37,12 +37,12 @@ const getNavItems = (t: (key: string) => string): NavItem[] => [
   {
     icon: (
       <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M8 18h8M12 2v2M3.6 9H20.4M4 4h16a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1z"></path>
-        <path d="M2 12h20M6 16v-4M10 16v-4M14 16v-4M18 16v-4"></path>
+        <path d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+        <path d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
       </svg>
     ),
-    name: t("navigation.carReports"),
-    path: "/car-reports",
+    name: t("navigation.locateVehicles"),
+    path: "/locate-vehicles",
   },
   {
     icon: <DocsIcon />,
@@ -62,18 +62,6 @@ const getNavItems = (t: (key: string) => string): NavItem[] => [
     ),
     name: t("navigation.contracts"),
     path: "/contracts",
-  },
-  {
-    icon: (
-      <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-        <circle cx="9" cy="7" r="4"></circle>
-        <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
-        <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-      </svg>
-    ),
-    name: t("navigation.staff"),
-    path: "/staff",
   },
   {
     icon: <DollarLineIcon />,
