@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import { Button } from '@/components/ui/button/Button';
 import { Badge } from '@/components/ui/badge/Badge';
 import { Modal } from '@/components/ui/modal';
@@ -37,7 +37,8 @@ interface CarLocation {
   technical_inspection_expiry_date?: string;
 }
 
-export default function LocateVehiclesPage() {
+// Component that uses useSearchParams
+function LocateVehiclesContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [cars, setCars] = useState<CarLocation[]>([]);
@@ -637,5 +638,23 @@ export default function LocateVehiclesPage() {
         </div>
       </Modal>
     </div>
+  );
+}
+
+// Main export with Suspense wrapper
+export default function LocateVehiclesPage() {
+  return (
+    <Suspense fallback={
+      <div className="p-6">
+        <div className="flex items-center justify-center py-12">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+            <p className="mt-4 text-gray-600 dark:text-gray-400">Loading vehicle tracking...</p>
+          </div>
+        </div>
+      </div>
+    }>
+      <LocateVehiclesContent />
+    </Suspense>
   );
 }
