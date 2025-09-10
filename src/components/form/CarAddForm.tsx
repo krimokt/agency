@@ -829,370 +829,487 @@ const CarAddForm: React.FC<CarAddFormProps> = ({ onSubmit, onCancel }) => {
           {/* Step 3: Required Documents */}
           {currentStep === 3 && (
             <div className="space-y-6">
-              <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 mb-6">
-                <div className="flex items-center text-blue-700 dark:text-blue-300 font-medium">
-                  <span>Vehicle: {basicInfo.brand} {basicInfo.model} {basicInfo.year} ({basicInfo.plateNumber})</span>
-                </div>
-              </div>
-
-              <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4 mb-6">
-                <div className="flex items-start">
-                  <svg className="w-5 h-5 text-red-600 dark:text-red-400 mt-0.5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
-                  </svg>
+              {/* Car Info Banner */}
+              <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+                <div className="flex items-center">
+                  <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900/50 rounded-full flex items-center justify-center mr-3">
+                    <svg className="w-4 h-4 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </div>
                   <div>
-                    <h4 className="text-sm font-medium text-red-800 dark:text-red-300">Required:</h4>
-                    <p className="text-sm text-red-700 dark:text-red-400 mt-1">
-                      You must upload at least one document before saving the car. The car cannot be saved without documents.
+                    <p className="text-sm font-medium text-blue-900 dark:text-blue-100">Vehicle Information</p>
+                    <p className="text-blue-700 dark:text-blue-300 font-semibold">
+                      {basicInfo.brand} {basicInfo.model} {basicInfo.year} • {basicInfo.plateNumber}
                     </p>
                   </div>
                 </div>
               </div>
 
-              {/* Mobile QR Upload */}
-              <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
-                <h3 className="text-base font-semibold text-gray-900 dark:text-white mb-2">Upload via Mobile</h3>
-                <p className="text-sm text-gray-600 dark:text-gray-300 mb-3">Generate a QR code to upload documents from a phone.</p>
-                
-                {/* Car Creation Status */}
-                {isCreatingCar && (
-                  <div className="mb-4 p-3 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
-                    <div className="flex items-center">
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-yellow-600 mr-2"></div>
-                      <span className="text-sm text-yellow-700 dark:text-yellow-300">
-                        Creating car record for QR uploads...
-                      </span>
-                    </div>
+              {/* Requirements Notice */}
+              <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-4">
+                <div className="flex items-start">
+                  <div className="w-5 h-5 text-amber-600 dark:text-amber-400 mr-3 mt-0.5">
+                    <svg fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                    </svg>
                   </div>
-                )}
-
-                {/* QR Upload Status */}
-                {isPollingQR && (
-                  <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
-                    <div className="flex items-center">
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600 mr-2"></div>
-                      <span className="text-sm text-blue-700 dark:text-blue-300">
-                        Waiting for mobile uploads... Scan the QR code with your phone to upload documents.
-                      </span>
-                    </div>
-                  </div>
-                )}
-                
-                {/* Lazy load QR code generator to avoid SSR issues */}
-                <div className="max-w-md">
-                  <Suspense fallback={<div className="text-center p-4">Loading QR generator...</div>}>
-                    <CarQRCodeGenerator 
-                      carId={carId || 'temp-car'} 
-                      carLabel={`${basicInfo.brand} ${basicInfo.model}`} 
-                      onTokenGenerated={(jwtToken: string) => {
-                        setQrJwtToken(jwtToken);
-                        setIsPollingQR(true);
-                      }}
-                    />
-                  </Suspense>
-                </div>
-              </div>
-
-              {/* Carte Grise */}
-              <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4 transition-all hover:shadow-md">
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                  <div className="flex-1">
-                    <label htmlFor="carteGrise" className="block text-base font-medium text-gray-900 dark:text-white mb-1">
-                      Carte Grise (Vehicle Registration)
-                    </label>
-                    <p className="text-sm text-gray-500 dark:text-gray-400 mb-3">
-                      Official car ownership paper
+                  <div>
+                    <h4 className="text-sm font-semibold text-amber-800 dark:text-amber-200">Document Requirement</h4>
+                    <p className="text-sm text-amber-700 dark:text-amber-300 mt-1">
+                      Upload at least one document to save the vehicle. Use mobile QR code or manual upload.
                     </p>
-                    <div className="flex flex-wrap gap-4">
-                      <div className="flex-1 min-w-[200px]">
-                        <input
-                          type="file"
-                          id="carteGrise"
-                          onChange={(e) => handleFileChange(e, 'carteGrise')}
-                          className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-4 py-2 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        />
-                        {documents.carteGrise && (
-                          <p className="mt-1 text-xs text-green-600 dark:text-green-400">
-                            Selected: {documents.carteGrise.name}
-                          </p>
-                        )}
-                        {docUrls.carteGrise && (
-                          <p className="mt-1 text-xs text-blue-600 dark:text-blue-400">
-                            ✓ Saved {isPollingQR ? '(via QR)' : '(manual)'}
-                          </p>
-                        )}
-                      </div>
-                      <div>
-                        <label htmlFor="carteGriseIssued" className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                          Issued Date
-                        </label>
-                        <input
-                          type="date"
-                          id="carteGriseIssued"
-                          value={documents.carteGriseDates.issuedDate}
-                          onChange={(e) => handleDocumentDateChange('carteGriseDates', 'issuedDate', e.target.value)}
-                          className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-3 py-2 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        />
-                      </div>
-                    </div>
                   </div>
                 </div>
               </div>
 
-              {/* Insurance */}
-              <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4 transition-all hover:shadow-md">
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                  <div className="flex-1">
-                    <label htmlFor="insurance" className="block text-base font-medium text-gray-900 dark:text-white mb-1">
-                      Assurance Voiture (Insurance)
-                    </label>
-                    <p className="text-sm text-gray-500 dark:text-gray-400 mb-3">
-                      Valid insurance paper
-                    </p>
-                    <div className="flex flex-wrap gap-4">
-                      <div className="flex-1 min-w-[200px]">
-                        <input
-                          type="file"
-                          id="insurance"
-                          onChange={(e) => handleFileChange(e, 'insurance')}
-                          className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-4 py-2 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        />
-                        {documents.insurance && (
-                          <p className="mt-1 text-xs text-green-600 dark:text-green-400">
-                            Selected: {documents.insurance.name}
-                          </p>
-                        )}
-                        {docUrls.insurance && (
-                          <p className="mt-1 text-xs text-blue-600 dark:text-blue-400">
-                            ✓ Saved {isPollingQR ? '(via QR)' : '(manual)'}
-                          </p>
-                        )}
-                      </div>
-                      <div>
-                        <label htmlFor="insuranceIssued" className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                          Issued Date
-                        </label>
-                        <input
-                          type="date"
-                          id="insuranceIssued"
-                          value={documents.insuranceDates.issuedDate}
-                          onChange={(e) => handleDocumentDateChange('insuranceDates', 'issuedDate', e.target.value)}
-                          className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-3 py-2 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        />
-                      </div>
-                      <div>
-                        <label htmlFor="insuranceExpiry" className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                          Expiry Date
-                        </label>
-                        <input
-                          type="date"
-                          id="insuranceExpiry"
-                          value={documents.insuranceDates.expiryDate}
-                          onChange={(e) => handleDocumentDateChange('insuranceDates', 'expiryDate', e.target.value)}
-                          className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-3 py-2 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        />
-                      </div>
-                      {documents.insuranceDates.expiryDate && (
-                        <div className="flex items-center">
-                          {getExpiryStatus(documents.insuranceDates.expiryDate).status === 'valid' && (
-                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300">
-                              Valid
-                            </span>
-                          )}
-                          {getExpiryStatus(documents.insuranceDates.expiryDate).status === 'warning' && (
-                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300">
-                              {getExpiryStatus(documents.insuranceDates.expiryDate).text}
-                            </span>
-                          )}
-                          {getExpiryStatus(documents.insuranceDates.expiryDate).status === 'expired' && (
-                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300">
-                              Expired
-                            </span>
-                          )}
-                        </div>
-                      )}
+              {/* QR Code Upload Section */}
+              <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-sm">
+                <div className="p-6">
+                  <div className="flex items-center mb-4">
+                    <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900/50 rounded-lg flex items-center justify-center mr-4">
+                      <svg className="w-5 h-5 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h4" />
+                      </svg>
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Mobile QR Upload</h3>
+                      <p className="text-sm text-gray-600 dark:text-gray-300">Scan with your phone to upload documents</p>
                     </div>
                   </div>
-                </div>
-              </div>
 
-              {/* Technical Inspection */}
-              <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4 transition-all hover:shadow-md">
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                  <div className="flex-1">
-                    <label htmlFor="technicalInspection" className="block text-base font-medium text-gray-900 dark:text-white mb-1">
-                      Visite Technique (Inspection Report)
-                    </label>
-                    <p className="text-sm text-gray-500 dark:text-gray-400 mb-3">
-                      Proves the car passed technical inspection
-                    </p>
-                    <div className="flex flex-wrap gap-4">
-                      <div className="flex-1 min-w-[200px]">
-                        <input
-                          type="file"
-                          id="technicalInspection"
-                          onChange={(e) => handleFileChange(e, 'technicalInspection')}
-                          className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-4 py-2 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        />
-                        {documents.technicalInspection && (
-                          <p className="mt-1 text-xs text-green-600 dark:text-green-400">
-                            Selected: {documents.technicalInspection.name}
-                          </p>
-                        )}
-                        {docUrls.technicalInspection && (
-                          <p className="mt-1 text-xs text-blue-600 dark:text-blue-400">
-                            ✓ Saved {isPollingQR ? '(via QR)' : '(manual)'}
-                          </p>
-                        )}
-                      </div>
-                      <div>
-                        <label htmlFor="technicalInspectionIssued" className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                          Issued Date
-                        </label>
-                        <input
-                          type="date"
-                          id="technicalInspectionIssued"
-                          value={documents.technicalInspectionDates.issuedDate}
-                          onChange={(e) => handleDocumentDateChange('technicalInspectionDates', 'issuedDate', e.target.value)}
-                          className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-3 py-2 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        />
-                      </div>
-                      <div>
-                        <label htmlFor="technicalInspectionExpiry" className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                          Expiry Date
-                        </label>
-                        <input
-                          type="date"
-                          id="technicalInspectionExpiry"
-                          value={documents.technicalInspectionDates.expiryDate}
-                          onChange={(e) => handleDocumentDateChange('technicalInspectionDates', 'expiryDate', e.target.value)}
-                          className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-3 py-2 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        />
-                      </div>
-                      {documents.technicalInspectionDates.expiryDate && (
-                        <div className="flex items-center">
-                          {getExpiryStatus(documents.technicalInspectionDates.expiryDate).status === 'valid' && (
-                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300">
-                              Valid
-                            </span>
-                          )}
-                          {getExpiryStatus(documents.technicalInspectionDates.expiryDate).status === 'warning' && (
-                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300">
-                              {getExpiryStatus(documents.technicalInspectionDates.expiryDate).text}
-                            </span>
-                          )}
-                          {getExpiryStatus(documents.technicalInspectionDates.expiryDate).status === 'expired' && (
-                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300">
-                              Expired
-                            </span>
-                          )}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Rental Agreement */}
-              <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4 transition-all hover:shadow-md">
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                  <div className="flex-1">
-                    <label htmlFor="rentalAgreement" className="block text-base font-medium text-gray-900 dark:text-white mb-1">
-                      Contrat de Location (Rental Agreement)
-                    </label>
-                    <p className="text-sm text-gray-500 dark:text-gray-400 mb-3">
-                      Optional contract if needed for business
-                    </p>
-                    <div className="flex flex-wrap gap-4">
-                      <div className="flex-1 min-w-[200px]">
-                        <input
-                          type="file"
-                          id="rentalAgreement"
-                          onChange={(e) => handleFileChange(e, 'rentalAgreement')}
-                          className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-4 py-2 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        />
-                        {documents.rentalAgreement && (
-                          <p className="mt-1 text-xs text-green-600 dark:text-green-400">
-                            Selected: {documents.rentalAgreement.name}
-                          </p>
-                        )}
-                        {docUrls.rentalAgreement && (
-                          <p className="mt-1 text-xs text-blue-600 dark:text-blue-400">
-                            ✓ Saved {isPollingQR ? '(via QR)' : '(manual)'}
-                          </p>
-                        )}
-                      </div>
-                      <div>
-                        <label htmlFor="rentalAgreementStart" className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                          Start Date
-                        </label>
-                        <input
-                          type="date"
-                          id="rentalAgreementStart"
-                          value={documents.rentalAgreementDates.startDate}
-                          onChange={(e) => handleDocumentDateChange('rentalAgreementDates', 'startDate', e.target.value)}
-                          className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-3 py-2 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        />
-                      </div>
-                      <div>
-                        <label htmlFor="rentalAgreementEnd" className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                          End Date
-                        </label>
-                        <input
-                          type="date"
-                          id="rentalAgreementEnd"
-                          value={documents.rentalAgreementDates.endDate}
-                          onChange={(e) => handleDocumentDateChange('rentalAgreementDates', 'endDate', e.target.value)}
-                          className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-3 py-2 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Other Documents */}
-              <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4 transition-all hover:shadow-md">
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                  <div className="flex-1">
-                    <label htmlFor="otherDocuments" className="block text-base font-medium text-gray-900 dark:text-white mb-1">
-                      Other Documents
-                    </label>
-                    <p className="text-sm text-gray-500 dark:text-gray-400 mb-3">
-                      Any additional paperwork
-                    </p>
-                    <div className="flex flex-wrap gap-4">
-                      <div className="flex-1 min-w-[200px]">
-                        <input
-                          type="file"
-                          id="otherDocuments"
-                          onChange={(e) => handleFileChange(e, 'otherDocuments')}
-                          className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-4 py-2 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        />
-                        {documents.otherDocuments && (
-                          <p className="mt-1 text-xs text-green-600 dark:text-green-400">
-                            Selected: {documents.otherDocuments.name}
-                          </p>
-                        )}
-                        {docUrls.otherDocuments && (
-                          <p className="mt-1 text-xs text-blue-600 dark:text-blue-400">
-                            ✓ Saved {isPollingQR ? '(via QR)' : '(manual)'}
-                          </p>
-                        )}
-                      </div>
+                  {/* Status Messages */}
+                  {isCreatingCar && (
+                    <div className="mb-4 p-3 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
                       <div className="flex items-center">
-                        <span className="text-sm text-gray-500 dark:text-gray-400">Optional</span>
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-yellow-600 mr-3"></div>
+                        <span className="text-sm font-medium text-yellow-700 dark:text-yellow-300">
+                          Creating vehicle record...
+                        </span>
+                      </div>
+                    </div>
+                  )}
+
+                  {isPollingQR && (
+                    <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+                      <div className="flex items-center">
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600 mr-3"></div>
+                        <span className="text-sm font-medium text-blue-700 dark:text-blue-300">
+                          Waiting for mobile uploads...
+                        </span>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* QR Code Generator */}
+                  <div className="max-w-sm">
+                    <Suspense fallback={
+                      <div className="flex items-center justify-center p-8 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                      </div>
+                    }>
+                      <CarQRCodeGenerator 
+                        carId={carId || 'temp-car'} 
+                        carLabel={`${basicInfo.brand} ${basicInfo.model}`} 
+                        onTokenGenerated={(jwtToken: string) => {
+                          setQrJwtToken(jwtToken);
+                          setIsPollingQR(true);
+                        }}
+                      />
+                    </Suspense>
+                  </div>
+                </div>
+              </div>
+
+              {/* Document Upload Grid */}
+              <div className="grid gap-4">
+                {/* Carte Grise */}
+                <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-sm hover:shadow-md transition-shadow">
+                  <div className="p-5">
+                    <div className="flex items-start space-x-4">
+                      <div className="w-10 h-10 bg-green-100 dark:bg-green-900/50 rounded-lg flex items-center justify-center flex-shrink-0">
+                        <svg className="w-5 h-5 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between mb-2">
+                          <h4 className="text-base font-semibold text-gray-900 dark:text-white">Carte Grise</h4>
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300">
+                            Required
+                          </span>
+                        </div>
+                        <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">Vehicle registration document</p>
+                        
+                        <div className="space-y-3">
+                          <div>
+                            <input
+                              type="file"
+                              id="carteGrise"
+                              onChange={(e) => handleFileChange(e, 'carteGrise')}
+                              className="block w-full text-sm text-gray-900 dark:text-gray-100 border border-gray-300 dark:border-gray-600 rounded-lg cursor-pointer bg-gray-50 dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 file:mr-4 file:py-2 file:px-4 file:rounded-l-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                            />
+                            {documents.carteGrise && (
+                              <p className="mt-1 text-xs text-green-600 dark:text-green-400 flex items-center">
+                                <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                                </svg>
+                                {documents.carteGrise.name}
+                              </p>
+                            )}
+                            {docUrls.carteGrise && (
+                              <p className="mt-1 text-xs text-blue-600 dark:text-blue-400 flex items-center">
+                                <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                                </svg>
+                                Uploaded {isPollingQR ? 'via QR' : 'manually'}
+                              </p>
+                            )}
+                          </div>
+                          <div>
+                            <label htmlFor="carteGriseIssued" className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+                              Issue Date
+                            </label>
+                            <input
+                              type="date"
+                              id="carteGriseIssued"
+                              value={documents.carteGriseDates.issuedDate}
+                              onChange={(e) => handleDocumentDateChange('carteGriseDates', 'issuedDate', e.target.value)}
+                              className="block w-full text-sm border-gray-300 dark:border-gray-600 rounded-lg focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Insurance */}
+                <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-sm hover:shadow-md transition-shadow">
+                  <div className="p-5">
+                    <div className="flex items-start space-x-4">
+                      <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900/50 rounded-lg flex items-center justify-center flex-shrink-0">
+                        <svg className="w-5 h-5 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                        </svg>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between mb-2">
+                          <h4 className="text-base font-semibold text-gray-900 dark:text-white">Insurance</h4>
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300">
+                            Required
+                          </span>
+                        </div>
+                        <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">Vehicle insurance certificate</p>
+                        
+                        <div className="space-y-3">
+                          <div>
+                            <input
+                              type="file"
+                              id="insurance"
+                              onChange={(e) => handleFileChange(e, 'insurance')}
+                              className="block w-full text-sm text-gray-900 dark:text-gray-100 border border-gray-300 dark:border-gray-600 rounded-lg cursor-pointer bg-gray-50 dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 file:mr-4 file:py-2 file:px-4 file:rounded-l-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                            />
+                            {documents.insurance && (
+                              <p className="mt-1 text-xs text-green-600 dark:text-green-400 flex items-center">
+                                <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                                </svg>
+                                {documents.insurance.name}
+                              </p>
+                            )}
+                            {docUrls.insurance && (
+                              <p className="mt-1 text-xs text-blue-600 dark:text-blue-400 flex items-center">
+                                <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                                </svg>
+                                Uploaded {isPollingQR ? 'via QR' : 'manually'}
+                              </p>
+                            )}
+                          </div>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div>
+                              <label htmlFor="insuranceIssued" className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                Issue Date
+                              </label>
+                              <input
+                                type="date"
+                                id="insuranceIssued"
+                                value={documents.insuranceDates.issuedDate}
+                                onChange={(e) => handleDocumentDateChange('insuranceDates', 'issuedDate', e.target.value)}
+                                className="block w-full text-sm border-gray-300 dark:border-gray-600 rounded-lg focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
+                              />
+                            </div>
+                            <div>
+                              <label htmlFor="insuranceExpiry" className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                Expiry Date
+                              </label>
+                              <input
+                                type="date"
+                                id="insuranceExpiry"
+                                value={documents.insuranceDates.expiryDate}
+                                onChange={(e) => handleDocumentDateChange('insuranceDates', 'expiryDate', e.target.value)}
+                                className="block w-full text-sm border-gray-300 dark:border-gray-600 rounded-lg focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
+                              />
+                            </div>
+                          </div>
+                          {documents.insuranceDates.expiryDate && (
+                            <div className="mt-2">
+                              {getExpiryStatus(documents.insuranceDates.expiryDate).status === 'valid' && (
+                                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300">
+                                  ✓ Valid
+                                </span>
+                              )}
+                              {getExpiryStatus(documents.insuranceDates.expiryDate).status === 'warning' && (
+                                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300">
+                                  ⚠ {getExpiryStatus(documents.insuranceDates.expiryDate).text}
+                                </span>
+                              )}
+                              {getExpiryStatus(documents.insuranceDates.expiryDate).status === 'expired' && (
+                                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300">
+                                  ✕ Expired
+                                </span>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Technical Inspection */}
+                <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-sm hover:shadow-md transition-shadow">
+                  <div className="p-5">
+                    <div className="flex items-start space-x-4">
+                      <div className="w-10 h-10 bg-purple-100 dark:bg-purple-900/50 rounded-lg flex items-center justify-center flex-shrink-0">
+                        <svg className="w-5 h-5 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                        </svg>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between mb-2">
+                          <h4 className="text-base font-semibold text-gray-900 dark:text-white">Technical Inspection</h4>
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300">
+                            Optional
+                          </span>
+                        </div>
+                        <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">Technical inspection certificate</p>
+                        
+                        <div className="space-y-3">
+                          <div>
+                            <input
+                              type="file"
+                              id="technicalInspection"
+                              onChange={(e) => handleFileChange(e, 'technicalInspection')}
+                              className="block w-full text-sm text-gray-900 dark:text-gray-100 border border-gray-300 dark:border-gray-600 rounded-lg cursor-pointer bg-gray-50 dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 file:mr-4 file:py-2 file:px-4 file:rounded-l-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                            />
+                            {documents.technicalInspection && (
+                              <p className="mt-1 text-xs text-green-600 dark:text-green-400 flex items-center">
+                                <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                                </svg>
+                                {documents.technicalInspection.name}
+                              </p>
+                            )}
+                            {docUrls.technicalInspection && (
+                              <p className="mt-1 text-xs text-blue-600 dark:text-blue-400 flex items-center">
+                                <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                                </svg>
+                                Uploaded {isPollingQR ? 'via QR' : 'manually'}
+                              </p>
+                            )}
+                          </div>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div>
+                              <label htmlFor="technicalInspectionIssued" className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                Issue Date
+                              </label>
+                              <input
+                                type="date"
+                                id="technicalInspectionIssued"
+                                value={documents.technicalInspectionDates.issuedDate}
+                                onChange={(e) => handleDocumentDateChange('technicalInspectionDates', 'issuedDate', e.target.value)}
+                                className="block w-full text-sm border-gray-300 dark:border-gray-600 rounded-lg focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
+                              />
+                            </div>
+                            <div>
+                              <label htmlFor="technicalInspectionExpiry" className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                Expiry Date
+                              </label>
+                              <input
+                                type="date"
+                                id="technicalInspectionExpiry"
+                                value={documents.technicalInspectionDates.expiryDate}
+                                onChange={(e) => handleDocumentDateChange('technicalInspectionDates', 'expiryDate', e.target.value)}
+                                className="block w-full text-sm border-gray-300 dark:border-gray-600 rounded-lg focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
+                              />
+                            </div>
+                          </div>
+                          {documents.technicalInspectionDates.expiryDate && (
+                            <div className="mt-2">
+                              {getExpiryStatus(documents.technicalInspectionDates.expiryDate).status === 'valid' && (
+                                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300">
+                                  ✓ Valid
+                                </span>
+                              )}
+                              {getExpiryStatus(documents.technicalInspectionDates.expiryDate).status === 'warning' && (
+                                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300">
+                                  ⚠ {getExpiryStatus(documents.technicalInspectionDates.expiryDate).text}
+                                </span>
+                              )}
+                              {getExpiryStatus(documents.technicalInspectionDates.expiryDate).status === 'expired' && (
+                                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300">
+                                  ✕ Expired
+                                </span>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Rental Agreement */}
+                <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-sm hover:shadow-md transition-shadow">
+                  <div className="p-5">
+                    <div className="flex items-start space-x-4">
+                      <div className="w-10 h-10 bg-orange-100 dark:bg-orange-900/50 rounded-lg flex items-center justify-center flex-shrink-0">
+                        <svg className="w-5 h-5 text-orange-600 dark:text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between mb-2">
+                          <h4 className="text-base font-semibold text-gray-900 dark:text-white">Rental Agreement</h4>
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300">
+                            Optional
+                          </span>
+                        </div>
+                        <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">Rental or lease agreement</p>
+                        
+                        <div className="space-y-3">
+                          <div>
+                            <input
+                              type="file"
+                              id="rentalAgreement"
+                              onChange={(e) => handleFileChange(e, 'rentalAgreement')}
+                              className="block w-full text-sm text-gray-900 dark:text-gray-100 border border-gray-300 dark:border-gray-600 rounded-lg cursor-pointer bg-gray-50 dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 file:mr-4 file:py-2 file:px-4 file:rounded-l-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                            />
+                            {documents.rentalAgreement && (
+                              <p className="mt-1 text-xs text-green-600 dark:text-green-400 flex items-center">
+                                <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                                </svg>
+                                {documents.rentalAgreement.name}
+                              </p>
+                            )}
+                            {docUrls.rentalAgreement && (
+                              <p className="mt-1 text-xs text-blue-600 dark:text-blue-400 flex items-center">
+                                <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                                </svg>
+                                Uploaded {isPollingQR ? 'via QR' : 'manually'}
+                              </p>
+                            )}
+                          </div>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div>
+                              <label htmlFor="rentalAgreementStart" className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                Start Date
+                              </label>
+                              <input
+                                type="date"
+                                id="rentalAgreementStart"
+                                value={documents.rentalAgreementDates.startDate}
+                                onChange={(e) => handleDocumentDateChange('rentalAgreementDates', 'startDate', e.target.value)}
+                                className="block w-full text-sm border-gray-300 dark:border-gray-600 rounded-lg focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
+                              />
+                            </div>
+                            <div>
+                              <label htmlFor="rentalAgreementEnd" className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                End Date
+                              </label>
+                              <input
+                                type="date"
+                                id="rentalAgreementEnd"
+                                value={documents.rentalAgreementDates.endDate}
+                                onChange={(e) => handleDocumentDateChange('rentalAgreementDates', 'endDate', e.target.value)}
+                                className="block w-full text-sm border-gray-300 dark:border-gray-600 rounded-lg focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Other Documents */}
+                <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-sm hover:shadow-md transition-shadow">
+                  <div className="p-5">
+                    <div className="flex items-start space-x-4">
+                      <div className="w-10 h-10 bg-gray-100 dark:bg-gray-700 rounded-lg flex items-center justify-center flex-shrink-0">
+                        <svg className="w-5 h-5 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                        </svg>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between mb-2">
+                          <h4 className="text-base font-semibold text-gray-900 dark:text-white">Other Documents</h4>
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300">
+                            Optional
+                          </span>
+                        </div>
+                        <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">Additional documentation</p>
+                        
+                        <div>
+                          <input
+                            type="file"
+                            id="otherDocuments"
+                            onChange={(e) => handleFileChange(e, 'otherDocuments')}
+                            className="block w-full text-sm text-gray-900 dark:text-gray-100 border border-gray-300 dark:border-gray-600 rounded-lg cursor-pointer bg-gray-50 dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 file:mr-4 file:py-2 file:px-4 file:rounded-l-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                          />
+                          {documents.otherDocuments && (
+                            <p className="mt-1 text-xs text-green-600 dark:text-green-400 flex items-center">
+                              <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                              </svg>
+                              {documents.otherDocuments.name}
+                            </p>
+                          )}
+                          {docUrls.otherDocuments && (
+                            <p className="mt-1 text-xs text-blue-600 dark:text-blue-400 flex items-center">
+                              <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                              </svg>
+                              Uploaded {isPollingQR ? 'via QR' : 'manually'}
+                            </p>
+                          )}
+                        </div>
                       </div>
                     </div>
                   </div>
                 </div>
               </div>
 
-              {/* Upload Documents */}
-              <div className="flex justify-end">
-                <Button type="button" onClick={saveDocuments} className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700">
-                  Upload Documents
-                </Button>
+              {/* Upload Action */}
+              <div className="bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h4 className="text-sm font-semibold text-gray-900 dark:text-white">Ready to Upload?</h4>
+                    <p className="text-xs text-gray-600 dark:text-gray-300">Upload selected documents to cloud storage</p>
+                  </div>
+                  <Button 
+                    type="button" 
+                    onClick={saveDocuments} 
+                    className="px-6 py-2 bg-blue-600 hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 text-white font-medium rounded-lg transition-colors"
+                  >
+                    Upload Documents
+                  </Button>
+                </div>
               </div>
             </div>
           )}

@@ -47,7 +47,9 @@ export async function GET(request: NextRequest) {
     };
 
     let status = 'pending';
-    if (upload.upload_status === 'completed' && upload.processing_status === 'completed') status = 'completed';
+    if (upload.upload_status === 'manually_completed' && upload.processing_status === 'completed') status = 'manually_completed';
+    else if (upload.upload_status === 'completed' && upload.processing_status === 'completed') status = 'completed';
+    else if (upload.upload_status === 'ready_for_completion') status = 'ready_for_completion';
     else if (upload.upload_status === 'failed' || upload.processing_status === 'failed') status = 'failed';
     else if (upload.upload_status === 'processing' || upload.processing_status === 'processing') status = 'processing';
     else if (upload.upload_status === 'uploading') status = 'uploading';
@@ -64,6 +66,13 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: 'Failed to check status' }, { status: 500 });
   }
 }
+
+
+
+
+
+
+
 
 
 

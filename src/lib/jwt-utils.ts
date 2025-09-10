@@ -45,7 +45,7 @@ export class JWTUtils {
       qrTokenId,
       type: 'car_qr_upload'
     };
-    return jwt.sign(payload, JWT_SECRET, { expiresIn: '4m' });
+    return jwt.sign(payload, JWT_SECRET, { expiresIn: '30m' });
   }
 
   /**

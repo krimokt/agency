@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import Button from "@/components/ui/button/Button";
 
 interface ExtractedFields {
   firstName?: string;
@@ -68,227 +69,132 @@ export default function AIDocumentsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="max-w-4xl mx-auto px-4">
-        <div className="bg-white rounded-lg shadow-lg p-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-8 text-center">
-            🤖 AI Document Processing
-          </h1>
+    <div className="p-6">
+      <div className="mb-6">
+        <h1 className="text-2xl font-semibold text-gray-900 dark:text-white">Document Processing</h1>
+        <p className="text-gray-600 dark:text-gray-400 mt-1">Upload and extract information from documents</p>
+      </div>
+
+      <div className="max-w-4xl space-y-6">
+        {/* Upload Section */}
+        <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
+          <h2 className="text-lg font-medium text-gray-900 dark:text-white mb-4">Upload Document</h2>
           
-          <div className="mb-8">
-            <h2 className="text-xl font-semibold text-gray-800 mb-4">
-              Upload Document
-            </h2>
+          <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-6 text-center">
+            <input
+              type="file"
+              accept="image/*,.pdf"
+              onChange={handleFileChange}
+              className="hidden"
+              id="file-upload"
+            />
             
-            <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
-              <input
-                type="file"
-                accept="image/*,.pdf"
-                onChange={handleFileChange}
-                className="hidden"
-                id="file-upload"
-              />
-              <label
-                htmlFor="file-upload"
-                className="cursor-pointer inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700"
-              >
-                Choose File
-              </label>
-              
-              {file && (
-                <div className="mt-4">
-                  <p className="text-sm text-gray-600">
-                    Selected: <span className="font-medium">{file.name}</span>
-                  </p>
-                  <p className="text-xs text-gray-500">
-                    Size: {(file.size / 1024 / 1024).toFixed(2)} MB
-                  </p>
+            {!file ? (
+              <div>
+                <label htmlFor="file-upload" className="cursor-pointer">
+                  <Button variant="primary">Choose File</Button>
+                </label>
+                <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
+                  JPG, PNG, PDF (Max 10MB)
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                <p className="font-medium text-gray-900 dark:text-white">{file.name}</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                  {(file.size / 1024 / 1024).toFixed(2)} MB
+                </p>
+                <div className="flex justify-center gap-3">
+                  <Button
+                    onClick={handleSubmit}
+                    disabled={loading}
+                    variant="primary"
+                  >
+                    {loading ? "Processing..." : "Process"}
+                  </Button>
+                  <Button
+                    onClick={() => {
+                      setFile(null);
+                      setFields(null);
+                      setError(null);
+                    }}
+                    variant="outline"
+                  >
+                    Remove
+                  </Button>
                 </div>
-              )}
-            </div>
+              </div>
+            )}
           </div>
-
-          {file && (
-            <div className="mb-8">
-              <button
-                onClick={handleSubmit}
-                disabled={loading}
-                className="w-full bg-green-600 text-white py-3 px-6 rounded-lg font-medium hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {loading ? "Processing..." : "Process Document with AI"}
-              </button>
-            </div>
-          )}
-
-          {error && (
-            <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
-              <p className="text-red-800">{error}</p>
-            </div>
-          )}
-
-          {fields && (
-            <div className="space-y-6">
-              <div className="border-b border-gray-200 pb-4">
-                <h2 className="text-xl font-semibold text-gray-800 mb-2">
-                  Extracted Information
-                </h2>
-                <div className="flex items-center space-x-4 text-sm text-gray-600">
-                  <span>Confidence: {fields.confidence ? `${(fields.confidence * 100).toFixed(1)}%` : 'N/A'}</span>
-                  <span>Document Type: {fields.documentType || 'N/A'}</span>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Personal Information */}
-                <div className="space-y-4">
-                  <h3 className="text-lg font-medium text-gray-800 border-b border-gray-200 pb-2">
-                    Personal Information
-                  </h3>
-                  
-                  <div className="space-y-3">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700">First Name</label>
-                      <input
-                        type="text"
-                        value={fields.firstName || ""}
-                        readOnly
-                        className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50 text-gray-900"
-                      />
-                    </div>
-                    
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700">Last Name</label>
-                      <input
-                        type="text"
-                        value={fields.lastName || ""}
-                        readOnly
-                        className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50 text-gray-900"
-                      />
-                    </div>
-                    
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700">Date of Birth</label>
-                      <input
-                        type="text"
-                        value={fields.birthDate || ""}
-                        readOnly
-                        className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50 text-gray-900"
-                      />
-                    </div>
-                    
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700">Place of Birth</label>
-                      <input
-                        type="text"
-                        value={fields.birthPlace || ""}
-                        readOnly
-                        className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50 text-gray-900"
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                {/* Document Information */}
-                <div className="space-y-4">
-                  <h3 className="text-lg font-medium text-gray-800 border-b border-gray-200 pb-2">
-                    Document Information
-                  </h3>
-                  
-                  <div className="space-y-3">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700">Document ID</label>
-                      <input
-                        type="text"
-                        value={fields.documentId || ""}
-                        readOnly
-                        className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50 text-gray-900"
-                      />
-                    </div>
-                    
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700">Expiry Date</label>
-                      <input
-                        type="text"
-                        value={fields.expiryDate || ""}
-                        readOnly
-                        className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50 text-gray-900"
-                      />
-                    </div>
-                    
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700">Nationality</label>
-                      <input
-                        type="text"
-                        value={fields.nationality || ""}
-                        readOnly
-                        className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50 text-gray-900"
-                      />
-                    </div>
-                    
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700">Gender</label>
-                      <input
-                        type="text"
-                        value={fields.gender || ""}
-                        readOnly
-                        className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50 text-gray-900"
-                      />
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Address */}
-              {fields.address && (
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Address</label>
-                  <textarea
-                    value={fields.address}
-                    readOnly
-                    rows={3}
-                    className="block w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50 text-gray-900"
-                  />
-                </div>
-              )}
-
-              {/* Unknown Entities */}
-              {fields.unknownEntities && fields.unknownEntities.length > 0 && (
-                <div>
-                  <h3 className="text-lg font-medium text-gray-800 mb-3">Additional Information</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    {fields.unknownEntities.map((entity, index) => (
-                      <div key={index} className="p-3 bg-gray-50 rounded-lg">
-                        <div className="text-sm font-medium text-gray-700 capitalize">
-                          {entity.type.replace(/_/g, ' ')}
-                        </div>
-                        <div className="text-sm text-gray-900">{entity.text}</div>
-                        <div className="text-xs text-gray-500">
-                          Confidence: {(entity.confidence * 100).toFixed(1)}%
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Raw Text */}
-              <details className="mt-6">
-                <summary className="cursor-pointer text-sm font-medium text-gray-700 hover:text-gray-900">
-                  View Full Extracted Text
-                </summary>
-                <div className="mt-3 p-4 bg-gray-50 rounded-lg">
-                  <pre className="text-sm text-gray-800 whitespace-pre-wrap overflow-auto max-h-64">
-                    {fields.fullText || "No text extracted"}
-                  </pre>
-                </div>
-              </details>
-            </div>
-          )}
         </div>
+
+        {/* Error */}
+        {error && (
+          <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
+            <p className="text-red-800 dark:text-red-300">{error}</p>
+          </div>
+        )}
+
+        {/* Results */}
+        {fields && (
+          <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
+            <div className="mb-6">
+              <h2 className="text-lg font-medium text-gray-900 dark:text-white">Extracted Information</h2>
+              <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                Confidence: {fields.confidence ? `${(fields.confidence * 100).toFixed(1)}%` : 'N/A'} • 
+                Type: {fields.documentType || 'N/A'}
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
+              {[
+                { label: "First Name", value: fields.firstName },
+                { label: "Last Name", value: fields.lastName },
+                { label: "Date of Birth", value: fields.birthDate },
+                { label: "Place of Birth", value: fields.birthPlace },
+                { label: "Gender", value: fields.gender },
+                { label: "Nationality", value: fields.nationality },
+                { label: "Document ID", value: fields.documentId },
+                { label: "Expiry Date", value: fields.expiryDate }
+              ].map((field, index) => (
+                field.value && (
+                  <div key={index} className="flex justify-between py-2 border-b border-gray-100 dark:border-gray-700">
+                    <span className="text-sm font-medium text-gray-700 dark:text-gray-300">{field.label}</span>
+                    <span className="text-sm text-gray-900 dark:text-white">{field.value}</span>
+                  </div>
+                )
+              ))}
+              
+              {fields.address && (
+                <div className="md:col-span-2 py-2 border-b border-gray-100 dark:border-gray-700">
+                  <div className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Address</div>
+                  <div className="text-sm text-gray-900 dark:text-white">{fields.address}</div>
+                </div>
+              )}
+            </div>
+
+            {fields.unknownEntities && fields.unknownEntities.length > 0 && (
+              <div className="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
+                <h3 className="text-sm font-medium text-gray-900 dark:text-white mb-3">Additional Information</h3>
+                <div className="space-y-2">
+                  {fields.unknownEntities.map((entity, index) => (
+                    <div key={index} className="flex justify-between py-2 border-b border-gray-100 dark:border-gray-700">
+                      <span className="text-sm text-gray-700 dark:text-gray-300">{entity.type.replace(/_/g, ' ')}</span>
+                      <span className="text-sm text-gray-900 dark:text-white">{entity.text}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );
 }
+
+
+
 
 
 

@@ -56,6 +56,28 @@ const CarUploadContent: React.FC = () => {
     }
   };
 
+  const handleCompleteUpload = async () => {
+    if (!token) return;
+    try {
+      const res = await fetch('/api/mobile-upload-car/complete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token })
+      });
+      const data = await res.json();
+      if (data.success) {
+        // Show success message and potentially redirect
+        alert('Upload process completed successfully!');
+        // Could redirect to a success page or close the mobile upload
+        window.location.href = '/upload-success';
+      } else {
+        setError(data.error || 'Failed to complete upload');
+      }
+    } catch (e) {
+      setError('Failed to complete upload');
+    }
+  };
+
   if (!token) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
@@ -85,16 +107,71 @@ const CarUploadContent: React.FC = () => {
               <span className="text-sm font-medium text-gray-700">Status:</span>
               <span className="text-sm font-medium text-gray-900">{status.status}</span>
             </div>
-            <div className="grid grid-cols-2 gap-2 text-xs">
-              <div className={`p-2 rounded ${status.documents?.carteGrise ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-600'}`}>Carte Grise {status.documents?.carteGrise ? '✓' : ''}</div>
-              <div className={`p-2 rounded ${status.documents?.insurance ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-600'}`}>Insurance {status.documents?.insurance ? '✓' : ''}</div>
-              <div className={`p-2 rounded ${status.documents?.inspection ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-600'}`}>Technical Inspection {status.documents?.inspection ? '✓' : ''}</div>
-              <div className={`p-2 rounded ${status.documents?.rentalAgreement ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-600'}`}>Rental Agreement {status.documents?.rentalAgreement ? '✓' : ''}</div>
+            <div className="grid grid-cols-1 gap-2 text-xs">
+              <div className={`p-2 rounded flex items-center justify-between ${status.documents?.carteGrise ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-600'}`}>
+                <span>📋 Carte Grise</span>
+                <span className="font-medium">{status.documents?.carteGrise ? '✓ Uploaded' : 'Required'}</span>
+              </div>
+              <div className={`p-2 rounded flex items-center justify-between ${status.documents?.insurance ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-600'}`}>
+                <span>🛡️ Insurance</span>
+                <span className="font-medium">{status.documents?.insurance ? '✓ Uploaded' : 'Required'}</span>
+              </div>
+              <div className={`p-2 rounded flex items-center justify-between ${status.documents?.inspection ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-600'}`}>
+                <span>🔧 Technical Inspection</span>
+                <span className="font-medium">{status.documents?.inspection ? '✓ Uploaded' : 'Required'}</span>
+              </div>
+              <div className={`p-2 rounded flex items-center justify-between ${status.documents?.rentalAgreement ? 'bg-green-100 text-green-800' : 'bg-orange-100 text-orange-600'}`}>
+                <span>📄 Rental Agreement</span>
+                <span className="font-medium">{status.documents?.rentalAgreement ? '✓ Uploaded' : 'Optional'}</span>
+              </div>
+              <div className={`p-2 rounded flex items-center justify-between ${status.documents?.other ? 'bg-green-100 text-green-800' : 'bg-orange-100 text-orange-600'}`}>
+                <span>📁 Other Documents</span>
+                <span className="font-medium">{status.documents?.other ? '✓ Uploaded' : 'Optional'}</span>
+              </div>
+            </div>
+
+            {/* Progress Bar */}
+            <div className="mt-3">
+              {(() => {
+                const totalDocs = 5;
+                const uploadedDocs = [
+                  status.documents?.carteGrise,
+                  status.documents?.insurance,
+                  status.documents?.inspection,
+                  status.documents?.rentalAgreement,
+                  status.documents?.other
+                ].filter(Boolean).length;
+                const progressPercentage = (uploadedDocs / totalDocs) * 100;
+                
+                return (
+                  <div>
+                    <div className="flex justify-between text-xs text-gray-600 mb-1">
+                      <span>Progress</span>
+                      <span>{uploadedDocs}/{totalDocs} documents</span>
+                    </div>
+                    <div className="w-full bg-gray-200 rounded-full h-2">
+                      <div 
+                        className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                        style={{ width: `${progressPercentage}%` }}
+                      ></div>
+                    </div>
+                  </div>
+                );
+              })()}
             </div>
           </div>
         )}
 
-        {status?.status !== 'completed' && (
+        {(() => {
+          if (!status?.documents) return false;
+          // Show upload interface unless all 5 documents are uploaded AND manually completed
+          const allDocsUploaded = status.documents.carteGrise && 
+                                 status.documents.insurance && 
+                                 status.documents.inspection && 
+                                 status.documents.rentalAgreement && 
+                                 status.documents.other;
+          return !allDocsUploaded || status?.status !== 'manually_completed';
+        })() && (
           <div className="bg-white rounded-lg shadow-sm border p-6">
             <h2 className="text-lg font-semibold text-gray-900 mb-2">Upload Documents</h2>
             <p className="text-sm text-gray-600 mb-4">
@@ -178,16 +255,67 @@ const CarUploadContent: React.FC = () => {
           </div>
         )}
 
-        {status?.status === 'completed' && (
-          <div className="bg-green-50 border border-green-200 rounded-lg p-4 mt-6">
-            <div className="flex items-center">
-              <div className="text-green-600 mr-2">✓</div>
-              <div className="text-green-700 text-sm">
-                <strong>Upload Complete!</strong> All required documents have been uploaded successfully.
+        {(() => {
+          if (!status?.documents) return null;
+          
+          // Check if all documents are uploaded (including optional ones)
+          const allDocsUploaded = status.documents.carteGrise && 
+                                 status.documents.insurance && 
+                                 status.documents.inspection && 
+                                 status.documents.rentalAgreement && 
+                                 status.documents.other;
+          
+          // Check if only required documents are uploaded
+          const requiredDocsUploaded = status.documents.carteGrise && 
+                                      status.documents.insurance && 
+                                      status.documents.inspection;
+          
+          if (allDocsUploaded) {
+            return (
+              <div className="bg-green-50 border border-green-200 rounded-lg p-4 mt-6">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center">
+                    <div className="text-green-600 mr-2">✓</div>
+                    <div className="text-green-700 text-sm">
+                      <strong>All Documents Uploaded!</strong> Ready to complete the upload process.
+                    </div>
+                  </div>
+                  <button
+                    onClick={handleCompleteUpload}
+                    className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md text-sm font-medium"
+                  >
+                    Complete Upload
+                  </button>
+                </div>
               </div>
-            </div>
-          </div>
-        )}
+            );
+          } else if (requiredDocsUploaded) {
+            const missingOptional = [];
+            if (!status.documents.rentalAgreement) missingOptional.push('Rental Agreement');
+            if (!status.documents.other) missingOptional.push('Other Documents');
+            
+            return (
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-6">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center">
+                    <div className="text-blue-600 mr-2">ℹ️</div>
+                    <div className="text-blue-700 text-sm">
+                      <strong>Required documents uploaded.</strong> Optional: {missingOptional.join(', ')} remaining.
+                    </div>
+                  </div>
+                  <button
+                    onClick={handleCompleteUpload}
+                    className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium"
+                  >
+                    Complete Upload
+                  </button>
+                </div>
+              </div>
+            );
+          }
+          
+          return null;
+        })()}
 
         {error && (
           <div className="bg-red-50 border border-red-200 rounded-lg p-4 mt-6 text-red-700 text-sm">{error}</div>

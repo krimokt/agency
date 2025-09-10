@@ -5,6 +5,7 @@ import React from "react";
 import Badge from "@/components/ui/badge/Badge";
 import Button from "@/components/ui/button/Button";
 import { Modal } from "@/components/ui/modal";
+import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
@@ -41,6 +42,15 @@ interface CarInfo {
   technical_inspection_url?: string | null;
   rental_agreement_url?: string | null;
   other_documents_url?: string | null;
+  // Document dates
+  carte_grise_issue_date?: string | null;
+  carte_grise_expiry_date?: string | null;
+  insurance_issue_date?: string | null;
+  insurance_expiry_date?: string | null;
+  technical_inspection_issue_date?: string | null;
+  technical_inspection_expiry_date?: string | null;
+  rental_agreement_start_date?: string | null;
+  rental_agreement_end_date?: string | null;
 }
 
 export default function CarsPage() {
@@ -50,6 +60,30 @@ export default function CarsPage() {
   const [selectedCar, setSelectedCar] = useState<CarInfo | null>(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [carToDelete, setCarToDelete] = useState<CarInfo | null>(null);
+  const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
+  const [selectedDocumentType, setSelectedDocumentType] = useState<string>('');
+  const [isQRModalOpen, setIsQRModalOpen] = useState(false);
+  const [qrCodeData, setQrCodeData] = useState<{url: string, documentType: string, carInfo: any, qrCodeDataUrl?: string} | null>(null);
+  
+  // Document date states
+  const [documentDates, setDocumentDates] = useState({
+    carte_grise: {
+      issue_date: '',
+      expiry_date: ''
+    },
+    insurance: {
+      issue_date: '',
+      expiry_date: ''
+    },
+    technical_inspection: {
+      issue_date: '',
+      expiry_date: ''
+    },
+    rental_agreement: {
+      start_date: '',
+      end_date: ''
+    }
+  });
   const router = useRouter();
   const { t } = useTranslation();
   
@@ -69,6 +103,30 @@ export default function CarsPage() {
     }
     setIsHydrated(true);
   }, []);
+
+  // Initialize document dates when a car is selected
+  useEffect(() => {
+    if (selectedCar) {
+      setDocumentDates({
+        carte_grise: {
+          issue_date: selectedCar.carte_grise_issue_date || '',
+          expiry_date: selectedCar.carte_grise_expiry_date || ''
+        },
+        insurance: {
+          issue_date: selectedCar.insurance_issue_date || '',
+          expiry_date: selectedCar.insurance_expiry_date || ''
+        },
+        technical_inspection: {
+          issue_date: selectedCar.technical_inspection_issue_date || '',
+          expiry_date: selectedCar.technical_inspection_expiry_date || ''
+        },
+        rental_agreement: {
+          start_date: selectedCar.rental_agreement_start_date || '',
+          end_date: selectedCar.rental_agreement_end_date || ''
+        }
+      });
+    }
+  }, [selectedCar]);
 
   // Update localStorage when view mode changes (only after hydration)
   useEffect(() => {
@@ -117,6 +175,78 @@ export default function CarsPage() {
   useEffect(() => {
     fetchCars();
   }, []);
+
+  // Real-time updates for document management
+  useEffect(() => {
+    let intervalId: NodeJS.Timeout;
+
+    if (isDetailsModalOpen && selectedCar) {
+      // Poll every 3 seconds when document management modal is open
+      intervalId = setInterval(async () => {
+        try {
+          const { data, error } = await supabase
+            .from('add_new_car')
+            .select('*')
+            .eq('id', selectedCar.id)
+            .single();
+
+          if (!error && data) {
+            // Update both carData and selectedCar with the latest document URLs
+            setCarData(prevCars => 
+              prevCars.map(car => 
+                car.id === selectedCar.id ? { ...car, ...data } : car
+              )
+            );
+            setSelectedCar({ ...selectedCar, ...data });
+          }
+        } catch (err) {
+          console.error('Error polling car updates:', err);
+        }
+      }, 3000); // Poll every 3 seconds
+    }
+
+    return () => {
+      if (intervalId) {
+        clearInterval(intervalId);
+      }
+    };
+  }, [isDetailsModalOpen, selectedCar]);
+
+  // Also poll when upload modal is open
+  useEffect(() => {
+    let intervalId: NodeJS.Timeout;
+
+    if (isUploadModalOpen && selectedCar) {
+      // Poll every 2 seconds when upload modal is open
+      intervalId = setInterval(async () => {
+        try {
+          const { data, error } = await supabase
+            .from('add_new_car')
+            .select('*')
+            .eq('id', selectedCar.id)
+            .single();
+
+          if (!error && data) {
+            // Update both carData and selectedCar with the latest document URLs
+            setCarData(prevCars => 
+              prevCars.map(car => 
+                car.id === selectedCar.id ? { ...car, ...data } : car
+              )
+            );
+            setSelectedCar({ ...selectedCar, ...data });
+          }
+        } catch (err) {
+          console.error('Error polling car updates:', err);
+        }
+      }, 2000); // Poll every 2 seconds
+    }
+
+    return () => {
+      if (intervalId) {
+        clearInterval(intervalId);
+      }
+    };
+  }, [isUploadModalOpen, selectedCar]);
 
   useEffect(() => {
     // Filter cars based on current filters
@@ -241,7 +371,119 @@ export default function CarsPage() {
     const car = carData.find(c => c.id === carId);
     if (car) {
       setSelectedCar(car);
-      setIsDetailsModalOpen(true);
+      setIsUploadModalOpen(true);
+    }
+  };
+
+  const handleDocumentClick = (documentType: string) => {
+    if (!selectedCar) return;
+    
+    setSelectedDocumentType(documentType);
+    
+    // Check if document exists - if yes, open it, if no, show upload modal
+    const documentUrl = selectedCar[`${documentType}_url` as keyof CarInfo] as string;
+    if (documentUrl) {
+      // Open document in new tab
+      window.open(documentUrl, '_blank');
+    } else {
+      // Show upload modal
+      setIsUploadModalOpen(true);
+    }
+  };
+
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>, documentType: string) => {
+    const file = event.target.files?.[0];
+    if (!file || !selectedCar) return;
+
+    try {
+      // Create FormData
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('carId', selectedCar.id);
+      formData.append('documentType', documentType);
+
+      // Upload file
+      const response = await fetch('/api/cars/upload-document', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error('Upload failed');
+      }
+
+      const result = await response.json();
+      if (result.success) {
+        // Refresh cars data
+        await fetchCars();
+        
+        // Show success message
+        const docName = documentType.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase());
+        alert(`${docName} uploaded successfully! Document replaced.`);
+        
+        // Keep modal open so user can continue managing documents
+        // Refresh the selected car data
+        const updatedCar = carData.find(car => car.id === selectedCar?.id);
+        if (updatedCar) {
+          setSelectedCar(updatedCar);
+        }
+      } else {
+        throw new Error(result.error || 'Upload failed');
+      }
+    } catch (error) {
+      console.error('Upload error:', error);
+      alert('Upload failed. Please try again.');
+    }
+  };
+
+  const handleDateChange = (documentType: string, dateField: string, value: string) => {
+    setDocumentDates(prev => ({
+      ...prev,
+      [documentType]: {
+        ...prev[documentType as keyof typeof prev],
+        [dateField]: value
+      }
+    }));
+  };
+
+  const handleSaveDocumentDates = async () => {
+    if (!selectedCar) return;
+
+    try {
+      const response = await fetch('/api/cars/update-documents', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          carId: selectedCar.id,
+          documents: {
+            carte_grise_issue_date: documentDates.carte_grise.issue_date,
+            carte_grise_expiry_date: documentDates.carte_grise.expiry_date,
+            insurance_issue_date: documentDates.insurance.issue_date,
+            insurance_expiry_date: documentDates.insurance.expiry_date,
+            technical_inspection_issue_date: documentDates.technical_inspection.issue_date,
+            technical_inspection_expiry_date: documentDates.technical_inspection.expiry_date,
+            rental_agreement_start_date: documentDates.rental_agreement.start_date,
+            rental_agreement_end_date: documentDates.rental_agreement.end_date,
+          }
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to save document dates');
+      }
+
+      const result = await response.json();
+      if (result.success) {
+        await fetchCars();
+        alert('Document dates saved successfully!');
+      } else {
+        throw new Error(result.error || 'Failed to save document dates');
+      }
+    } catch (error) {
+      console.error('Error saving document dates:', error);
+      alert('Failed to save document dates. Please try again.');
     }
   };
 
@@ -273,6 +515,46 @@ export default function CarsPage() {
     } catch (error) {
       console.error('Error updating documents:', error);
       alert('Failed to update documents. Please try again.');
+    }
+  };
+
+  const handleGenerateQRForReupload = async (carId: string, documentType: string) => {
+    try {
+      const response = await fetch('/api/qr/generate-car', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          carId,
+          documentType,
+          action: 'reupload'
+        }),
+      });
+
+      const result = await response.json();
+      
+      if (result.success) {
+        // Use the uploadUrl directly from the API response
+        const uploadUrl = result.uploadUrl;
+        
+        // Find the car info for display
+        const carInfo = carData.find(car => car.id === carId);
+        
+        // Set QR code data and open modal
+        setQrCodeData({
+          url: uploadUrl,
+          documentType,
+          carInfo,
+          qrCodeDataUrl: result.qrCodeDataUrl
+        });
+        setIsQRModalOpen(true);
+      } else {
+        throw new Error(result.error || 'Failed to generate QR code');
+      }
+    } catch (error) {
+      console.error('Error generating QR for reupload:', error);
+      alert('Failed to generate QR code. Please try again.');
     }
   };
 
@@ -852,7 +1134,7 @@ export default function CarsPage() {
       )}
 
       {/* Add Car Modal */}
-      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)}>
+      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} className="max-w-2xl">
         <div className="p-6">
           <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-6">
             Add New Car
@@ -930,129 +1212,201 @@ export default function CarsPage() {
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {/* Carte Grise */}
-                  <div className="flex items-center justify-between p-3 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
-                    <div className="flex items-center gap-3">
+                  <div 
+                    className="p-4 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                    onClick={() => handleDocumentClick('carte_grise')}
+                  >
+                    <div className="flex items-center gap-3 mb-3">
                       <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center">
                         <svg className="w-4 h-4 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                       </svg>
-                     </div>
+                        </svg>
+                      </div>
                       <div>
                         <p className="text-sm font-medium text-gray-900 dark:text-white">Carte Grise</p>
                         <p className="text-xs text-gray-500 dark:text-gray-400">Vehicle Registration</p>
-                   </div>
-                         </div>
-                    {selectedCar.carte_grise_url ? (
-                      <a href={selectedCar.carte_grise_url} target="_blank" rel="noopener noreferrer" className="text-blue-600 dark:text-blue-400 hover:underline text-sm">
-                        View
-                      </a>
-                    ) : (
-                      <span className="text-gray-400 dark:text-gray-500 text-sm">Not uploaded</span>
-                    )}
-                 </div>
+                      </div>
+                    </div>
+                    
+                    {/* Document Status and Dates */}
+                    <div className="space-y-2">
+                      {selectedCar.carte_grise_url ? (
+                        <div className="flex items-center justify-between">
+                          <span className="text-blue-600 dark:text-blue-400 text-sm font-medium">
+                            Click to view document
+                          </span>
+                          <Badge color="success" size="sm">Uploaded</Badge>
+                        </div>
+                      ) : (
+                        <div className="flex items-center justify-between">
+                          <span className="text-blue-600 dark:text-blue-400 text-sm font-medium">
+                            Click to upload document
+                          </span>
+                          <Badge color="error" size="sm">Missing</Badge>
+                        </div>
+                      )}
+                      
+                      {/* Issue Date */}
+                      {selectedCar.carte_grise_issue_date && (
+                        <div className="text-xs text-gray-600 dark:text-gray-400">
+                          <span className="font-medium">Issued:</span> {new Date(selectedCar.carte_grise_issue_date).toLocaleDateString()}
+                        </div>
+                      )}
+                      
+                      {/* Expiry Date */}
+                      {selectedCar.carte_grise_expiry_date && (
+                        <div className="text-xs text-gray-600 dark:text-gray-400">
+                          <span className="font-medium">Expires:</span> {new Date(selectedCar.carte_grise_expiry_date).toLocaleDateString()}
+                        </div>
+                      )}
+                    </div>
+                  </div>
 
                   {/* Insurance */}
-                  <div className="flex items-center justify-between p-3 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
-                    <div className="flex items-center gap-3">
+                  <div 
+                    className="p-4 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                    onClick={() => handleDocumentClick('insurance')}
+                  >
+                    <div className="flex items-center gap-3 mb-3">
                       <div className="w-8 h-8 bg-green-100 dark:bg-green-900/30 rounded-lg flex items-center justify-center">
                         <svg className="w-4 h-4 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                       </svg>
-                     </div>
+                        </svg>
+                      </div>
                       <div>
                         <p className="text-sm font-medium text-gray-900 dark:text-white">Insurance</p>
                         <p className="text-xs text-gray-500 dark:text-gray-400">Insurance Policy</p>
-                   </div>
-                         </div>
-                    {selectedCar.insurance_url ? (
-                      <a href={selectedCar.insurance_url} target="_blank" rel="noopener noreferrer" className="text-blue-600 dark:text-blue-400 hover:underline text-sm">
-                        View
-                      </a>
-                    ) : (
-                      <span className="text-gray-400 dark:text-gray-500 text-sm">Not uploaded</span>
-                    )}
-                 </div>
+                      </div>
+                    </div>
+                    
+                    {/* Document Status and Dates */}
+                    <div className="space-y-2">
+                      {selectedCar.insurance_url ? (
+                        <div className="flex items-center justify-between">
+                          <span className="text-blue-600 dark:text-blue-400 text-sm font-medium">
+                            Click to view document
+                          </span>
+                          <Badge color="success" size="sm">Uploaded</Badge>
+                        </div>
+                      ) : (
+                        <div className="flex items-center justify-between">
+                          <span className="text-blue-600 dark:text-blue-400 text-sm font-medium">
+                            Click to upload document
+                          </span>
+                          <Badge color="error" size="sm">Missing</Badge>
+                        </div>
+                      )}
+                      
+                      {/* Issue Date */}
+                      {selectedCar.insurance_issue_date && (
+                        <div className="text-xs text-gray-600 dark:text-gray-400">
+                          <span className="font-medium">Issued:</span> {new Date(selectedCar.insurance_issue_date).toLocaleDateString()}
+                        </div>
+                      )}
+                      
+                      {/* Expiry Date */}
+                      {selectedCar.insurance_expiry_date && (
+                        <div className="text-xs text-gray-600 dark:text-gray-400">
+                          <span className="font-medium">Expires:</span> {new Date(selectedCar.insurance_expiry_date).toLocaleDateString()}
+                        </div>
+                      )}
+                    </div>
+                  </div>
 
                   {/* Technical Inspection */}
-                  <div className="flex items-center justify-between p-3 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
-                    <div className="flex items-center gap-3">
+                  <div className="p-4 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+                    <div className="flex items-center gap-3 mb-3">
                       <div className="w-8 h-8 bg-yellow-100 dark:bg-yellow-900/30 rounded-lg flex items-center justify-center">
                         <svg className="w-4 h-4 text-yellow-600 dark:text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
-                       </svg>
-                     </div>
+                        </svg>
+                      </div>
                       <div>
                         <p className="text-sm font-medium text-gray-900 dark:text-white">Technical Inspection</p>
                         <p className="text-xs text-gray-500 dark:text-gray-400">Inspection Report</p>
-                   </div>
-                         </div>
-                    {selectedCar.technical_inspection_url ? (
-                      <a href={selectedCar.technical_inspection_url} target="_blank" rel="noopener noreferrer" className="text-blue-600 dark:text-blue-400 hover:underline text-sm">
-                        View
-                      </a>
-                    ) : (
-                      <span className="text-gray-400 dark:text-gray-500 text-sm">Not uploaded</span>
-                    )}
-                 </div>
+                      </div>
+                    </div>
+                    
+                    {/* Document Status and Dates */}
+                    <div className="space-y-2">
+                      {selectedCar.technical_inspection_url ? (
+                        <div className="flex items-center justify-between">
+                          <a href={selectedCar.technical_inspection_url} target="_blank" rel="noopener noreferrer" className="text-blue-600 dark:text-blue-400 hover:underline text-sm">
+                            View Document
+                          </a>
+                          <Badge color="success" size="sm">Uploaded</Badge>
+                        </div>
+                      ) : (
+                        <div className="flex items-center justify-between">
+                          <span className="text-gray-400 dark:text-gray-500 text-sm">Not uploaded</span>
+                          <Badge color="error" size="sm">Missing</Badge>
+                        </div>
+                      )}
+                      
+                      {/* Issue Date */}
+                      {selectedCar.technical_inspection_issue_date && (
+                        <div className="text-xs text-gray-600 dark:text-gray-400">
+                          <span className="font-medium">Issued:</span> {new Date(selectedCar.technical_inspection_issue_date).toLocaleDateString()}
+                        </div>
+                      )}
+                      
+                      {/* Expiry Date */}
+                      {selectedCar.technical_inspection_expiry_date && (
+                        <div className="text-xs text-gray-600 dark:text-gray-400">
+                          <span className="font-medium">Expires:</span> {new Date(selectedCar.technical_inspection_expiry_date).toLocaleDateString()}
+                        </div>
+                      )}
+                    </div>
+                  </div>
 
                   {/* Rental Agreement */}
-                  <div className="flex items-center justify-between p-3 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
-                    <div className="flex items-center gap-3">
+                  <div className="p-4 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+                    <div className="flex items-center gap-3 mb-3">
                       <div className="w-8 h-8 bg-purple-100 dark:bg-purple-900/30 rounded-lg flex items-center justify-center">
                         <svg className="w-4 h-4 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
-                       </svg>
-                     </div>
+                        </svg>
+                      </div>
                       <div>
                         <p className="text-sm font-medium text-gray-900 dark:text-white">Rental Agreement</p>
                         <p className="text-xs text-gray-500 dark:text-gray-400">Rental Contract</p>
-                   </div>
-                         </div>
-                    {selectedCar.rental_agreement_url ? (
-                      <a href={selectedCar.rental_agreement_url} target="_blank" rel="noopener noreferrer" className="text-blue-600 dark:text-blue-400 hover:underline text-sm">
-                        View
-                      </a>
-                    ) : (
-                      <span className="text-gray-400 dark:text-gray-500 text-sm">Not uploaded</span>
-                    )}
-                 </div>
-               </div>
+                      </div>
+                    </div>
+                    
+                    {/* Document Status and Dates */}
+                    <div className="space-y-2">
+                      {selectedCar.rental_agreement_url ? (
+                        <div className="flex items-center justify-between">
+                          <a href={selectedCar.rental_agreement_url} target="_blank" rel="noopener noreferrer" className="text-blue-600 dark:text-blue-400 hover:underline text-sm">
+                            View Document
+                          </a>
+                          <Badge color="success" size="sm">Uploaded</Badge>
+                        </div>
+                      ) : (
+                        <div className="flex items-center justify-between">
+                          <span className="text-gray-400 dark:text-gray-500 text-sm">Not uploaded</span>
+                          <Badge color="error" size="sm">Missing</Badge>
+                        </div>
+                      )}
+                      
+                      {/* Start Date */}
+                      {selectedCar.rental_agreement_start_date && (
+                        <div className="text-xs text-gray-600 dark:text-gray-400">
+                          <span className="font-medium">Start:</span> {new Date(selectedCar.rental_agreement_start_date).toLocaleDateString()}
+                        </div>
+                      )}
+                      
+                      {/* End Date */}
+                      {selectedCar.rental_agreement_end_date && (
+                        <div className="text-xs text-gray-600 dark:text-gray-400">
+                          <span className="font-medium">End:</span> {new Date(selectedCar.rental_agreement_end_date).toLocaleDateString()}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
 
                 {/* Document Management Actions */}
-                <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
-                  <h5 className="text-sm font-medium text-gray-900 dark:text-white mb-3">Document Actions</h5>
-                  <div className="flex flex-wrap gap-3">
-                    <Button variant="outline" size="sm" onClick={() => handleDocuments(selectedCar.id)}>
-                      Generate QR Code
-                   </Button>
-                    <Button variant="outline" size="sm">
-                      Upload Documents
-                 </Button>
-                 <Button 
-                   variant="outline" 
-                      size="sm"
-                   onClick={() => {
-                        const carteGrise = prompt('Enter Carte Grise URL (or leave empty):');
-                        const insurance = prompt('Enter Insurance URL (or leave empty):');
-                        const inspection = prompt('Enter Technical Inspection URL (or leave empty):');
-                        const rental = prompt('Enter Rental Agreement URL (or leave empty):');
-                        const other = prompt('Enter Other Documents URL (or leave empty):');
-                        
-                        if (carteGrise !== null || insurance !== null || inspection !== null || rental !== null || other !== null) {
-                          handleUpdateDocuments(selectedCar.id, {
-                            carte_grise_url: carteGrise || '',
-                            insurance_url: insurance || '',
-                            technical_inspection_url: inspection || '',
-                            rental_agreement_url: rental || '',
-                            other_documents_url: other || ''
-                          });
-                        }
-                      }}
-                    >
-                      Add Document URLs
-                 </Button>
-             </div>
-           </div>
            </div>
          </div>
        )}
@@ -1116,6 +1470,452 @@ export default function CarsPage() {
           )}
         </div>
       </Modal>
-      </div>
-    );
+
+        {/* New Enhanced Document Upload Modal */}
+      <Modal isOpen={isUploadModalOpen} onClose={() => setIsUploadModalOpen(false)} showCloseButton={false} maxHeight="90vh" className="max-w-2xl">
+          <div className="max-w-8xl w-full bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
+            {/* Header */}
+            <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h1 className="text-xl font-semibold text-gray-900 dark:text-white">Document Management</h1>
+                  <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">Upload and manage vehicle documents</p>
+                </div>
+                <button
+                  onClick={() => setIsUploadModalOpen(false)}
+                  className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md"
+                >
+                  <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+          
+            {/* Content */}
+            <div className="p-6">
+              {selectedCar && (
+                <div className="mb-6">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                      <div className="w-16 h-16 rounded-lg overflow-hidden border border-gray-200 dark:border-gray-600">
+                        <img 
+                          src={selectedCar.image_url} 
+                          alt={`${selectedCar.brand} ${selectedCar.model}`}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                      <div>
+                        <h2 className="text-lg font-medium text-gray-900 dark:text-white">{selectedCar.brand} {selectedCar.model}</h2>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">{selectedCar.plate_number}</p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <span className="text-sm text-gray-600 dark:text-gray-400">Status: </span>
+                      <span className="text-sm font-medium text-gray-900 dark:text-white">{selectedCar.status}</span>
+                    </div>
+                  </div>
+                </div>
+              )}
+              
+              <div className="space-y-6">
+                {/* Documents List */}
+                <div className="space-y-4">
+                  {[
+                    { 
+                      name: 'Carte Grise', 
+                      key: 'carte_grise',
+                      urlKey: 'carte_grise_url',
+                      issueDate: 'carte_grise_issue_date',
+                      expiryDate: 'carte_grise_expiry_date'
+                    },
+                    { 
+                      name: 'Insurance', 
+                      key: 'insurance',
+                      urlKey: 'insurance_url',
+                      issueDate: 'insurance_issue_date',
+                      expiryDate: 'insurance_expiry_date'
+                    },
+                    { 
+                      name: 'Technical Inspection', 
+                      key: 'technical_inspection',
+                      urlKey: 'technical_inspection_url',
+                      issueDate: 'technical_inspection_issue_date',
+                      expiryDate: 'technical_inspection_expiry_date'
+                    },
+                    { 
+                      name: 'Rental Agreement', 
+                      key: 'rental_agreement',
+                      urlKey: 'rental_agreement_url',
+                      issueDate: 'rental_agreement_start_date',
+                      expiryDate: 'rental_agreement_end_date'
+                    },
+                    { 
+                      name: 'Other Documents', 
+                      key: 'other_documents',
+                      urlKey: 'other_documents_url',
+                      issueDate: null,
+                      expiryDate: null
+                    }
+                  ].map((doc) => (
+                    <div key={doc.key} className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
+                      <div className="flex items-center justify-between mb-4">
+                        <h3 className="text-base font-medium text-gray-900 dark:text-white">{doc.name}</h3>
+                        <div className="flex items-center gap-2">
+                          {(() => {
+                            const hasDocument = !!selectedCar?.[doc.urlKey as keyof CarInfo];
+                            if (!hasDocument) {
+                              return (
+                                <>
+                                  <div className="w-2 h-2 bg-gray-300 dark:bg-gray-600 rounded-full"></div>
+                                  <span className="text-sm text-gray-500 dark:text-gray-400">Not uploaded</span>
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => selectedCar && handleGenerateQRForReupload(selectedCar.id, doc.key)}
+                                    className="ml-2 text-blue-600 border-blue-300 hover:bg-blue-50"
+                                  >
+                                    QR Upload
+                                  </Button>
+                                </>
+                              );
+                            }
+
+                            // Check if document is expired
+                            const expiryDateKey = doc.expiryDate as keyof CarInfo;
+                            const expiryDate = expiryDateKey ? selectedCar?.[expiryDateKey] as string : null;
+                            const isExpired = expiryDate && new Date(expiryDate) < new Date();
+                            
+                            if (isExpired) {
+                              return (
+                                <>
+                                  <div className="w-2 h-2 bg-red-500 rounded-full"></div>
+                                  <span className="text-sm text-red-600 dark:text-red-400 font-medium">Expired</span>
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => {
+                                      const url = selectedCar[doc.urlKey as keyof CarInfo] as string;
+                                      if (url) window.open(url, '_blank');
+                                    }}
+                                    className="ml-2 text-blue-600 border-blue-300 hover:bg-blue-50"
+                                  >
+                                    View
+                                  </Button>
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => selectedCar && handleGenerateQRForReupload(selectedCar.id, doc.key)}
+                                    className="text-red-600 border-red-300 hover:bg-red-50"
+                                  >
+                                    Re-upload
+                                  </Button>
+                                </>
+                              );
+                            }
+
+                            // Check if document expires soon (within 30 days)
+                            const daysUntilExpiry = expiryDate ? Math.ceil((new Date(expiryDate).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)) : null;
+                            const expiresSoon = daysUntilExpiry !== null && daysUntilExpiry <= 30 && daysUntilExpiry > 0;
+                            
+                            if (expiresSoon) {
+                              return (
+                                <>
+                                  <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
+                                  <span className="text-sm text-orange-600 dark:text-orange-400 font-medium">Expires in {daysUntilExpiry} days</span>
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => {
+                                      const url = selectedCar[doc.urlKey as keyof CarInfo] as string;
+                                      if (url) window.open(url, '_blank');
+                                    }}
+                                    className="ml-2 text-blue-600 border-blue-300 hover:bg-blue-50"
+                                  >
+                                    View
+                                  </Button>
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => selectedCar && handleGenerateQRForReupload(selectedCar.id, doc.key)}
+                                    className="text-orange-600 border-orange-300 hover:bg-orange-50"
+                                  >
+                                    Update
+                                  </Button>
+                                </>
+                              );
+                            }
+
+                            // Document is valid
+                            return (
+                              <>
+                                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                                <span className="text-sm text-green-600 dark:text-green-400">Valid</span>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => {
+                                    const url = selectedCar[doc.urlKey as keyof CarInfo] as string;
+                                    if (url) window.open(url, '_blank');
+                                  }}
+                                  className="ml-2 text-blue-600 border-blue-300 hover:bg-blue-50"
+                                >
+                                  View
+                                </Button>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => selectedCar && handleGenerateQRForReupload(selectedCar.id, doc.key)}
+                                  className="text-green-600 border-green-300 hover:bg-green-50"
+                                >
+                                  QR Replace
+                                </Button>
+                              </>
+                            );
+                          })()}
+                        </div>
+                      </div>
+                      
+                      <div className={`grid gap-4 ${doc.key === 'other_documents' ? 'grid-cols-1' : 'grid-cols-1 md:grid-cols-3'}`}>
+                        <div>
+                          <label className="block text-sm text-gray-700 dark:text-gray-300 mb-1">
+                            {selectedCar?.[doc.urlKey as keyof CarInfo] ? 'Replace File' : 'Upload File'}
+                          </label>
+                          <input
+                            type="file"
+                            accept=".pdf,.jpg,.jpeg,.png"
+                            onChange={(e) => handleFileUpload(e, doc.key)}
+                            className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                          />
+                          {selectedCar?.[doc.urlKey as keyof CarInfo] && (
+                            <p className="text-xs text-gray-500 mt-1">
+                              Current document will be replaced with the new file
+                            </p>
+                          )}
+                        </div>
+                        
+                        {doc.key !== 'other_documents' && (
+                          <>
+                            <div>
+                              <label className="block text-sm text-gray-700 dark:text-gray-300 mb-1">
+                                {doc.key === 'rental_agreement' ? 'Start Date' : 'Issue Date'}
+                              </label>
+                              <input
+                                type="date"
+                                value={
+                                  doc.key === 'rental_agreement' 
+                                    ? (documentDates.rental_agreement?.start_date || selectedCar?.[doc.issueDate as keyof CarInfo] as string || '')
+                                    : ((documentDates as any)[doc.key]?.issue_date || selectedCar?.[doc.issueDate as keyof CarInfo] as string || '')
+                                }
+                                onChange={(e) => handleDateChange(doc.key, doc.key === 'rental_agreement' ? 'start_date' : 'issue_date', e.target.value)}
+                                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded text-sm dark:bg-gray-700 dark:text-white"
+                              />
+                            </div>
+                            
+                            <div>
+                              <label className="block text-sm text-gray-700 dark:text-gray-300 mb-1">
+                                {doc.key === 'rental_agreement' ? 'End Date' : 'Expiry Date'}
+                              </label>
+                              <input
+                                type="date"
+                                value={
+                                  doc.key === 'rental_agreement' 
+                                    ? (documentDates.rental_agreement?.end_date || selectedCar?.[doc.expiryDate as keyof CarInfo] as string || '')
+                                    : ((documentDates as any)[doc.key]?.expiry_date || selectedCar?.[doc.expiryDate as keyof CarInfo] as string || '')
+                                }
+                                onChange={(e) => handleDateChange(doc.key, doc.key === 'rental_agreement' ? 'end_date' : 'expiry_date', e.target.value)}
+                                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded text-sm dark:bg-gray-700 dark:text-white"
+                              />
+                            </div>
+                          </>
+                        )}
+                      </div>
+                      
+                      {/* Expiry Status Alert */}
+                      {doc.expiryDate && selectedCar?.[doc.urlKey as keyof CarInfo] && (() => {
+                        const expiryDate = selectedCar[doc.expiryDate as keyof CarInfo] as string;
+                        if (!expiryDate) return null;
+                        
+                        const daysUntilExpiry = Math.ceil((new Date(expiryDate).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
+                        
+                        if (daysUntilExpiry < 0) {
+                          return (
+                            <div className="mt-3 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+                              <div className="flex items-start gap-2">
+                                <div className="w-4 h-4 text-red-600 dark:text-red-400 mt-0.5">⚠️</div>
+                                <div className="flex-1">
+                                  <h4 className="text-sm font-medium text-red-800 dark:text-red-200">Document Expired</h4>
+                                  <p className="text-xs text-red-600 dark:text-red-400 mt-1">
+                                    This document expired {Math.abs(daysUntilExpiry)} days ago. Please upload a new version immediately.
+                                  </p>
+                                </div>
+                                <Button
+                                  size="sm"
+                                  onClick={() => selectedCar && handleGenerateQRForReupload(selectedCar.id, doc.key)}
+                                  className="bg-red-600 hover:bg-red-700 text-white text-xs px-3 py-1"
+                                >
+                                  Re-upload Now
+                                </Button>
+                              </div>
+                            </div>
+                          );
+                        } else if (daysUntilExpiry <= 30) {
+                          return (
+                            <div className="mt-3 p-3 bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 rounded-lg">
+                              <div className="flex items-start gap-2">
+                                <div className="w-4 h-4 text-orange-600 dark:text-orange-400 mt-0.5">⚠️</div>
+                                <div className="flex-1">
+                                  <h4 className="text-sm font-medium text-orange-800 dark:text-orange-200">Expires Soon</h4>
+                                  <p className="text-xs text-orange-600 dark:text-orange-400 mt-1">
+                                    This document expires in {daysUntilExpiry} days. Consider updating it soon.
+                                  </p>
+                                </div>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => selectedCar && handleGenerateQRForReupload(selectedCar.id, doc.key)}
+                                  className="text-orange-600 border-orange-300 hover:bg-orange-50 text-xs px-3 py-1"
+                                >
+                                  Update
+                                </Button>
+                              </div>
+                            </div>
+                          );
+                        }
+                        return null;
+                      })()}
+                    </div>
+                  ))}
+                </div>
+
+                {/* Footer */}
+                <div className="flex justify-between items-center pt-4 border-t border-gray-200 dark:border-gray-700">
+                  <div className="text-sm text-gray-600 dark:text-gray-400">
+                    {selectedCar && [selectedCar.carte_grise_url, selectedCar.insurance_url, selectedCar.technical_inspection_url, selectedCar.rental_agreement_url, selectedCar.other_documents_url].filter(Boolean).length} of 5 documents uploaded
+                  </div>
+                  <div className="flex gap-3">
+                    <Button
+                      variant="outline"
+                      onClick={() => setIsUploadModalOpen(false)}
+                    >
+                      Cancel
+                    </Button>
+                    <Button
+                      onClick={handleSaveDocumentDates}
+                      variant="primary"
+                    >
+                      Save
+                    </Button>
+                  </div>
+                </div>
+              </div>
+          </div>
+        </div>
+      </Modal>
+
+      {/* QR Code Modal */}
+      <Modal isOpen={isQRModalOpen} onClose={() => setIsQRModalOpen(false)} className="max-w-md">
+        <div className="p-6 text-center">
+          <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
+            QR Code for Document Upload
+          </h2>
+          
+          {qrCodeData && (
+            <div className="space-y-4">
+              <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-12 h-12 rounded-lg overflow-hidden border border-gray-200 dark:border-gray-600">
+                    <img 
+                      src={qrCodeData.carInfo?.image_url} 
+                      alt={`${qrCodeData.carInfo?.brand} ${qrCodeData.carInfo?.model}`}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                  <div className="text-left">
+                    <h3 className="font-medium text-gray-900 dark:text-white">
+                      {qrCodeData.carInfo?.brand} {qrCodeData.carInfo?.model}
+                    </h3>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                      {qrCodeData.carInfo?.plate_number}
+                    </p>
+                  </div>
+                </div>
+                <div className="text-center">
+                  <p className="text-sm font-medium text-gray-900 dark:text-white mb-1">
+                    Document: {qrCodeData.documentType.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                  </p>
+                </div>
+              </div>
+
+              {/* QR Code Display */}
+              <div className="bg-white p-4 rounded-lg border-2 border-gray-200 dark:border-gray-600 inline-block">
+                <div className="w-60 h-60 flex items-center justify-center bg-white">
+                  {qrCodeData.qrCodeDataUrl ? (
+                    <img
+                      src={qrCodeData.qrCodeDataUrl}
+                      alt="QR Code"
+                      width="240"
+                      height="240"
+                      className="max-w-full max-h-full"
+                    />
+                  ) : (
+                    <div className="flex items-center justify-center text-gray-500">
+                      Loading QR Code...
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  Scan this QR code with your phone to upload or replace the document
+                </p>
+                
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      navigator.clipboard.writeText(qrCodeData.url).then(() => {
+                        alert('Upload URL copied to clipboard!');
+                      });
+                    }}
+                    className="flex-1 text-xs"
+                  >
+                    Copy Link
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => window.open(qrCodeData.url, '_blank')}
+                    className="flex-1 text-xs"
+                  >
+                    Open Link
+                  </Button>
+                </div>
+              </div>
+
+              <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3">
+                <p className="text-xs text-blue-700 dark:text-blue-300">
+                  📱 <strong>Instructions:</strong> Open your phone's camera app and point it at the QR code. 
+                  Tap the notification that appears to open the upload page.
+                </p>
+              </div>
+            </div>
+          )}
+
+          <div className="flex gap-3 mt-6">
+            <Button
+              variant="outline"
+              onClick={() => setIsQRModalOpen(false)}
+              className="flex-1"
+            >
+              Close
+            </Button>
+          </div>
+        </div>
+      </Modal>
+
+    </div>
+  );
 }

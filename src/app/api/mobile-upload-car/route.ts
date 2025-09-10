@@ -115,11 +115,11 @@ export async function POST(request: NextRequest) {
       // Don't fail the request, just log the error
     }
 
-    // mark completed if at least carte grise + insurance + inspection present
+    // mark as ready_for_completion if at least carte grise + insurance + inspection present
     const { data: after } = await supabase.from('car_uploads').select('*').eq('id', uploadRow.id).single();
     const hasCore = !!after?.carte_grise_url && !!after?.insurance_url && !!after?.inspection_url;
     if (hasCore) {
-      await supabase.from('car_uploads').update({ upload_status: 'completed', processing_status: 'completed', completed_at: new Date().toISOString() }).eq('id', uploadRow.id);
+      await supabase.from('car_uploads').update({ upload_status: 'ready_for_completion', processing_status: 'ready' }).eq('id', uploadRow.id);
     }
 
     return NextResponse.json({ success: true, documentType, uploadId: uploadRow.id });
