@@ -11,6 +11,7 @@ const clientRoutes = [
   '/quotation',
   '/cars',
   '/account',
+  '/locate-vehicles',
   '/ai-documents',
   '/maintenance',
   '/car-reports', 
