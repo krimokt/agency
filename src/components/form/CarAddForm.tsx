@@ -385,13 +385,60 @@ const CarAddForm: React.FC<CarAddFormProps> = ({ onSubmit, onCancel }) => {
       }
     }
     
-    // If car doesn't exist, create it (this shouldn't happen in normal flow)
-    onSubmit({
-      basicInfo,
-      details,
-      documents,
-      documentUrls: docUrls, // Include the uploaded document URLs
-    });
+    // If car doesn't exist, create it with all data including documents
+    if (!carId) {
+      try {
+        const { data, error } = await supabase
+          .from('add_new_car')
+          .insert({
+            brand: basicInfo.brand,
+            model: basicInfo.model,
+            plate_number: basicInfo.plateNumber,
+            year: basicInfo.year,
+            price_per_day: basicInfo.pricePerDay,
+            category: details.category,
+            status: details.status,
+            features: details.features || [],
+            image_url: details.imageUrl || 'https://images.unsplash.com/photo-1605893477799-b99e3b8b93fe?q=80&w=3270&auto=format&fit=crop',
+            // Include document URLs
+            carte_grise_url: docUrls.carteGrise,
+            insurance_url: docUrls.insurance,
+            technical_inspection_url: docUrls.technicalInspection,
+            rental_agreement_url: docUrls.rentalAgreement,
+            other_documents_url: docUrls.otherDocuments,
+            // Include document dates
+            carte_grise_issue_date: documents.carteGriseDates.issuedDate || null,
+            carte_grise_expiry_date: documents.carteGriseDates.expiryDate || null,
+            insurance_issue_date: documents.insuranceDates.issuedDate || null,
+            insurance_expiry_date: documents.insuranceDates.expiryDate || null,
+            technical_inspection_issue_date: documents.technicalInspectionDates.issuedDate || null,
+            technical_inspection_expiry_date: documents.technicalInspectionDates.expiryDate || null,
+            rental_agreement_start_date: documents.rentalAgreementDates.startDate || null,
+            rental_agreement_end_date: documents.rentalAgreementDates.endDate || null
+          })
+          .select()
+          .single();
+        
+        if (error) {
+          console.error('Error creating car:', error);
+          alert('Failed to create car. Please try again.');
+          return;
+        }
+        
+        // Call onSubmit with the created car data (this will just refresh the cars list)
+        onSubmit({
+          basicInfo,
+          details,
+          documents,
+          documentUrls: docUrls,
+        });
+        return;
+      } catch (error) {
+        console.error('Error creating car:', error);
+        alert('Failed to create car. Please try again.');
+        return;
+      }
+    }
   };
 
   // Save selected files from Step 3 to Supabase Storage

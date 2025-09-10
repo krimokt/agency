@@ -285,48 +285,16 @@ export default function CarsPage() {
     documents: any;
     documentUrls: Record<string, string | null>;
   }) => {
+    // The car has already been created in the CarAddForm component
+    // This function just needs to refresh the cars list and close the modal
     try {
-      const { data, error } = await supabase
-        .from('add_new_car')
-        .insert({
-          brand: carData.basicInfo.brand,
-          model: carData.basicInfo.model,
-          plate_number: carData.basicInfo.plateNumber,
-          year: carData.basicInfo.year,
-          price_per_day: carData.basicInfo.pricePerDay,
-          category: carData.details.category,
-          status: carData.details.status,
-          features: carData.details.features || [],
-          image_url: carData.details.imageUrl || 'https://images.unsplash.com/photo-1605893477799-b99e3b8b93fe?q=80&w=3270&auto=format&fit=crop',
-          // Include document URLs
-          carte_grise_url: carData.documentUrls.carteGrise,
-          insurance_url: carData.documentUrls.insurance,
-          technical_inspection_url: carData.documentUrls.technicalInspection,
-          rental_agreement_url: carData.documentUrls.rentalAgreement,
-          other_documents_url: carData.documentUrls.otherDocuments,
-          // Include document dates
-          carte_grise_issue_date: carData.documents.carteGriseDates?.issuedDate || null,
-          carte_grise_expiry_date: carData.documents.carteGriseDates?.expiryDate || null,
-          insurance_issue_date: carData.documents.insuranceDates?.issuedDate || null,
-          insurance_expiry_date: carData.documents.insuranceDates?.expiryDate || null,
-          technical_inspection_issue_date: carData.documents.technicalInspectionDates?.issuedDate || null,
-          technical_inspection_expiry_date: carData.documents.technicalInspectionDates?.expiryDate || null,
-          rental_agreement_start_date: carData.documents.rentalAgreementDates?.startDate || null,
-          rental_agreement_end_date: carData.documents.rentalAgreementDates?.endDate || null
-        })
-        .select()
-        .single();
-      
-      if (error) {
-        throw error;
-      }
-      
-      // Refresh the cars list
+      // Refresh the cars list to show the newly added car
       await fetchCars();
       setIsModalOpen(false);
     } catch (err) {
-      console.error('Error adding car:', err);
-      alert('Failed to add car. Please try again.');
+      console.error('Error refreshing cars list:', err);
+      alert('Car added successfully, but failed to refresh the list. Please refresh the page.');
+      setIsModalOpen(false);
     }
   };
 
